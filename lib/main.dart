@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'src/features/onboarding/presentation/screens/welcome_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,14 +15,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Health AI App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        // Let's define a color scheme for a more modern look
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+        useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Welcome to the Health AI App!'),
-        ),
-      ),
+      // Set our new WelcomeScreen as the home screen of the app.
+      home: const WelcomeScreen(),
     );
   }
 }
