@@ -1,7 +1,9 @@
 // lib/src/features/onboarding/presentation/screens/onboarding_details_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart'; // Make sure this path is correct
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/activity_level_step.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/goal_selection_step.dart';
 
 class OnboardingDetailsScreen extends StatefulWidget {
   const OnboardingDetailsScreen({super.key});
@@ -11,51 +13,82 @@ class OnboardingDetailsScreen extends StatefulWidget {
 }
 
 class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
-  // A controller to manage the pages in the PageView
   final PageController _pageController = PageController();
   
-  // A list of all our question widgets (steps)
-  // For now, it only has one step. We will add more later.
+  // NEW: A variable to keep track of the current page index
+  int _currentPageIndex = 0;
+
+  // NEW: Update the list to include all our new steps
   final List<Widget> _onboardingSteps = [
     const MetricInputStep(),
-    // We can add more steps here like:
-    // const GoalSelectionStep(),
-    // const ActivityLevelStep(),
+    const ActivityLevelStep(),
+    const GoalSelectionStep(),
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // NEW: Add a listener to the page controller to update our index variable
+    _pageController.addListener(() {
+      setState(() {
+        _currentPageIndex = _pageController.page?.round() ?? 0;
+      });
+    });
+  }
+
+  @override
   void dispose() {
-    _pageController.dispose(); // Clean up the controller when the widget is removed
+    _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // NEW: Determine if the current page is the last one
+    final isLastPage = _currentPageIndex == _onboardingSteps.length - 1;
+
     return Scaffold(
       appBar: AppBar(
-        // The title in the top bar
         title: const Text('Your Details'),
-        // A back button is automatically added by Flutter
+        // NEW: Add a progress indicator in the app bar
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4.0),
+          child: LinearProgressIndicator(
+            value: (_currentPageIndex + 1) / _onboardingSteps.length,
+            backgroundColor: Colors.grey[300],
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+          ),
+        ),
       ),
       body: PageView(
         controller: _pageController,
-        // This disables swiping. We want users to use the buttons.
-        physics: const NeverScrollableScrollPhysics(),
+        // The user can no longer swipe to change pages
+        physics: const NeverScrollableScrollPhysics(), 
         children: _onboardingSteps,
       ),
-      // Bottom navigation bar for the next/finish buttons
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(24.0).copyWith(bottom: 48),
         child: ElevatedButton(
           onPressed: () {
-            // Logic to move to the next page or finish
-            print('Next / Finish button pressed');
+            // NEW: Logic to navigate or finish
+            if (isLastPage) {
+              // This is the finish button
+              print('Onboarding complete!');
+              // Later, we will navigate to the main app dashboard here.
+            } else {
+              // This is the next button
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle: const TextStyle(fontSize: 18),
           ),
-          child: const Text('Next'), // This text will change on the last page
+          // NEW: Change the button text based on the current page
+          child: Text(isLastPage ? 'Finish' : 'Next'),
         ),
       ),
     );
