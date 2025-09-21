@@ -1,6 +1,7 @@
 // lib/src/features/onboarding/presentation/screens/welcome_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/screens/onboarding_details_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -51,9 +52,11 @@ class WelcomeScreen extends StatelessWidget {
               // The main action button to start the onboarding process.
               ElevatedButton(
                 onPressed: () {
-                  // This will navigate to the next screen. We will implement this later.
-                  print('Get Started button pressed!'); 
-                },
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const OnboardingDetailsScreen()),
+  );
+},
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   textStyle: const TextStyle(fontSize: 18),
