@@ -1,0 +1,30 @@
+// .devcontainer/devcontainer.json
+{
+  "name": "Flutter Dev Container",
+  // Use a generic base Ubuntu image.
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  "customizations": {
+    "vscode": {
+      // Define the VS Code extensions to install.
+      "extensions": [
+        "Dart-Code.flutter"
+      ]
+    }
+  },
+
+  // Forward the port that Flutter web will run on.
+  "forwardPorts": [
+    60000
+  ],
+  "portsAttributes": {
+    "60000": {
+      "label": "Flutter Web App",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  // This command runs after the container is created.
+  // It's where we install our dependencies.
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y unzip libglu1-mesa && git clone https://github.com/flutter/flutter.git /usr/local/flutter && sudo ln -s /usr/local/flutter/bin/flutter /usr/local/bin/flutter && flutter doctor"
+}
