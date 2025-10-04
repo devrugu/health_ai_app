@@ -17,18 +17,21 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
   int _waterConsumedMl = 0;
 
   final List<int> _cupSizes = const [250, 330, 500];
-  late int _selectedCupSize;
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedCupSize = _cupSizes.first;
-  }
+  // --- THIS IS THE FIX ---
+  // We initialize _selectedCupSize with a default value immediately.
+  // We remove the 'late' keyword and the assignment from initState.
+  int _selectedCupSize = 250;
+
+  // The initState method is no longer needed for this variable.
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _selectedCupSize = _cupSizes.first; // This line is now removed.
+  // }
 
   void _addWater() {
     setState(() {
-      // --- CHANGE 1: REMOVED THE LIMIT ---
-      // The min() function has been removed to allow exceeding the goal.
       _waterConsumedMl = _waterConsumedMl + _selectedCupSize;
     });
   }
@@ -45,10 +48,7 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
     });
   }
 
-  // Progress is now capped at 1.0 for the VISUAL bar only.
-  // The actual data (_waterConsumedMl) can go higher.
   double get _visualProgress => min(1.0, _waterConsumedMl / _waterGoalMl);
-  // We need the actual progress for the percentage text.
   double get _actualProgress => _waterConsumedMl / _waterGoalMl;
 
   @override
@@ -56,8 +56,6 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
     final theme = Theme.of(context);
     final goalInLiters = (_waterGoalMl / 1000).toStringAsFixed(1);
 
-    // --- CHANGE 2: VISUAL REWARD ---
-    // Determine the color of the progress bar based on whether the goal is met.
     final isGoalMet = _waterConsumedMl >= _waterGoalMl;
     final progressColor = isGoalMet ? Colors.green.shade400 : Colors.blueAccent;
 
@@ -72,8 +70,7 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
           children: [
             Row(
               children: [
-                Icon(Icons.opacity_rounded,
-                    color: progressColor), // Icon color also updates
+                Icon(Icons.opacity_rounded, color: progressColor),
                 const SizedBox(width: 8),
                 Text(
                   "Water Intake",
@@ -91,7 +88,6 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
                   style: theme.textTheme.bodyLarge,
                 ),
                 Text(
-                  // Use the actual progress for the percentage text
                   "${(_actualProgress * 100).toInt()}%",
                   style: theme.textTheme.bodyLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
@@ -99,14 +95,13 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
               ],
             ),
             const SizedBox(height: 8),
-            // Use an AnimatedContainer for a smooth color change transition
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               height: 12,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
-                  value: _visualProgress,
+                  value: _visualProgress.isNaN ? 0 : _visualProgress,
                   backgroundColor: theme.colorScheme.surface,
                   valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                 ),
