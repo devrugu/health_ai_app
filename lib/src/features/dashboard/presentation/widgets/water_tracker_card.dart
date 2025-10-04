@@ -1,6 +1,8 @@
 // lib/src/features/dashboard/presentation/widgets/water_tracker_card.dart
 
+import 'dart:math'; // We need this for the min() and max() functions
 import 'package:flutter/material.dart';
+import 'package:health_ai_app/src/features/dashboard/presentation/widgets/cup_size_selector.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_log_controls.dart';
 
 class WaterTrackerCard extends StatefulWidget {
@@ -11,38 +13,50 @@ class WaterTrackerCard extends StatefulWidget {
 }
 
 class _WaterTrackerCardState extends State<WaterTrackerCard> {
-  // --- STATE VARIABLES ---
-  // These will be dynamic in the future, based on user's goal.
-  final int _glassesGoal = 8; // e.g., 8 glasses
-  final double _goalInLiters = 2.0;
+  // --- STATE VARIABLES (Now using Milliliters) ---
+  final int _waterGoalMl = 2500; // 2.5 Liters
+  int _waterConsumedMl = 0;
 
-  // This is the core state variable that will be updated.
-  int _glassesConsumed = 0;
+  // State for the cup selector
+  final List<int> _cupSizes = const [250, 330, 500];
+  late int _selectedCupSize; // 'late' because it's initialized in initState
 
-  // --- STATE METHODS ---
-  void _addGlass() {
-    // setState is crucial. It tells Flutter to rebuild the widget with the new state.
-    if (_glassesConsumed < _glassesGoal) {
-      setState(() {
-        _glassesConsumed++;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    // Set the default selected cup size when the widget is first created.
+    _selectedCupSize = _cupSizes.first;
   }
 
-  void _removeGlass() {
-    if (_glassesConsumed > 0) {
-      setState(() {
-        _glassesConsumed--;
-      });
-    }
+  // --- STATE METHODS (Updated for mL) ---
+  void _addWater() {
+    setState(() {
+      // Add the selected cup size, ensuring it doesn't exceed the goal.
+      _waterConsumedMl = min(_waterGoalMl, _waterConsumedMl + _selectedCupSize);
+    });
+  }
+
+  void _removeWater() {
+    setState(() {
+      // Remove the selected cup size, ensuring it doesn't go below zero.
+      _waterConsumedMl = max(0, _waterConsumedMl - _selectedCupSize);
+    });
+  }
+
+  void _onCupSizeChanged(int newSize) {
+    setState(() {
+      _selectedCupSize = newSize;
+    });
   }
 
   // Helper to calculate the progress for the bar
-  double get _progress => _glassesConsumed / _glassesGoal;
+  double get _progress => _waterConsumedMl / _waterGoalMl;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Convert goal to a string in Liters for display
+    final goalInLiters = (_waterGoalMl / 1000).toStringAsFixed(1);
 
     return Card(
       color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
@@ -69,7 +83,7 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Goal: $_goalInLiters L", // Use our state variable
+                  "Goal: $goalInLiters L",
                   style: theme.textTheme.bodyLarge,
                 ),
                 Text(
@@ -80,22 +94,31 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
               ],
             ),
             const SizedBox(height: 8),
-            // The progress bar will now update automatically based on _progress
             LinearProgressIndicator(
-              value: _progress,
+              value:
+                  _progress.isNaN ? 0 : _progress, // Handle potential 0/0 case
               minHeight: 12,
               borderRadius: BorderRadius.circular(6),
               backgroundColor: theme.colorScheme.surface,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
             ),
-            const SizedBox(height: 24),
-            // Our new interactive controls
+            const SizedBox(height: 20),
+
+            // Our new cup size selector widget
+            CupSizeSelector(
+              cupSizes: _cupSizes,
+              selectedSize: _selectedCupSize,
+              onSizeSelected: _onCupSizeChanged,
+            ),
+            const SizedBox(height: 12),
+
+            // Our restyled and updated controls
             WaterLogControls(
-              glassesConsumed: _glassesConsumed,
-              glassesGoal: _glassesGoal,
-              onAdd: _addGlass, // Pass the method to the child widget
-              onRemove: _removeGlass, // Pass the method to the child widget
+              waterConsumedMl: _waterConsumedMl,
+              waterGoalMl: _waterGoalMl,
+              onAdd: _addWater,
+              onRemove: _removeWater,
             ),
           ],
         ),
