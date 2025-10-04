@@ -91,10 +91,8 @@ class _MealItemCardState extends State<MealItemCard> {
                   ? Column(
                       children: [
                         const Divider(height: 1, indent: 16, endIndent: 16),
-                        ...widget.meal.items
-                            .map((foodItem) =>
-                                _buildFoodListItem(foodItem, context))
-                            .toList(),
+                        ...widget.meal.items.map((foodItem) =>
+                            _buildFoodListItem(foodItem, context)),
                       ],
                     )
                   : const SizedBox

@@ -1,12 +1,12 @@
 // lib/src/features/onboarding/presentation/screens/onboarding_details_screen.dart
 
 import 'package:flutter/material.dart';
-// --- CORRECTED IMPORT PATHS ---
-import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
-import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart';
-import 'package:health_ai_app/src/features/onboarding/presentation/widgets/activity_level_step.dart';
-import 'package:health_ai_app/src/features/onboarding/presentation/widgets/goal_selection_step.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/activity_level_step.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/exercise_preference_step.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/goal_selection_step.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart';
 
 class OnboardingDetailsScreen extends StatefulWidget {
   const OnboardingDetailsScreen({super.key});
@@ -25,36 +25,19 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
   double? _weight;
   ActivityLevel? _activityLevel;
   Goal? _goal;
+  ExercisePreference? _exercisePreference;
 
-  // --- LATE INITIALIZED WIDGETS ---
-  late final List<Widget> _onboardingSteps;
+  late final List<Widget> _onboardingSteps; // We keep this for the total count
 
   @override
   void initState() {
     super.initState();
+    // We only need the count here now. The widgets will be built on-the-fly.
     _onboardingSteps = [
-      MetricInputStep(
-        onHeightChanged: (value) =>
-            setState(() => _height = double.tryParse(value)),
-        onWeightChanged: (value) =>
-            setState(() => _weight = double.tryParse(value)),
-      ),
-      ActivityLevelStep(
-        selectedActivityLevel: _activityLevel,
-        onSelection: (level) {
-          setState(() {
-            _activityLevel = level;
-          });
-        },
-      ),
-      GoalSelectionStep(
-        selectedGoal: _goal,
-        onSelection: (goal) {
-          setState(() {
-            _goal = goal;
-          });
-        },
-      ),
+      Container(), // Placeholder for MetricInputStep
+      Container(), // Placeholder for ActivityLevelStep
+      Container(), // Placeholder for GoalSelectionStep
+      Container(), // Placeholder for ExercisePreferenceStep
     ];
 
     _pageController.addListener(() {
@@ -73,7 +56,6 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
     super.dispose();
   }
 
-  // --- NAVIGATION LOGIC ---
   void _handleNext() {
     if (_isCurrentPageValid()) {
       if (_currentPageIndex < _onboardingSteps.length - 1) {
@@ -82,10 +64,11 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
           curve: Curves.easeOutQuad,
         );
       } else {
+        print(
+            'Onboarding complete! Data: Height: $_height, Weight: $_weight, Activity: $_activityLevel, Goal: $_goal, Exercise: $_exercisePreference');
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const DashboardScreen()),
-          (Route<dynamic> route) =>
-              false, // This predicate always returns false, clearing the stack.
+          (Route<dynamic> route) => false,
         );
       }
     }
@@ -102,7 +85,6 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
     }
   }
 
-  // --- VALIDATION LOGIC ---
   bool _isCurrentPageValid() {
     switch (_currentPageIndex) {
       case 0:
@@ -114,6 +96,8 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
         return _activityLevel != null;
       case 2:
         return _goal != null;
+      case 3:
+        return _exercisePreference != null;
       default:
         return false;
     }
@@ -141,37 +125,45 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
             preferredSize: const Size.fromHeight(4.0),
             child: LinearProgressIndicator(
               value: (_currentPageIndex + 1) / _onboardingSteps.length,
-              backgroundColor: Colors.grey[300],
             ),
           ),
         ),
+        // --- THIS IS THE CORRECTED IMPLEMENTATION ---
         body: PageView.builder(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: _onboardingSteps.length,
           itemBuilder: (context, index) {
-            // Rebuild the step widgets with the current state
-            if (index == 0) {
-              return MetricInputStep(
-                onHeightChanged: (value) =>
-                    setState(() => _height = double.tryParse(value)),
-                onWeightChanged: (value) =>
-                    setState(() => _weight = double.tryParse(value)),
-              );
+            // By building the widgets here, we ensure they are always created
+            // with the most up-to-date state variables.
+            switch (index) {
+              case 0:
+                return MetricInputStep(
+                  onHeightChanged: (value) =>
+                      setState(() => _height = double.tryParse(value)),
+                  onWeightChanged: (value) =>
+                      setState(() => _weight = double.tryParse(value)),
+                );
+              case 1:
+                return ActivityLevelStep(
+                  selectedActivityLevel: _activityLevel,
+                  onSelection: (level) =>
+                      setState(() => _activityLevel = level),
+                );
+              case 2:
+                return GoalSelectionStep(
+                  selectedGoal: _goal,
+                  onSelection: (goal) => setState(() => _goal = goal),
+                );
+              case 3:
+                return ExercisePreferenceStep(
+                  selectedPreference: _exercisePreference,
+                  onSelection: (preference) =>
+                      setState(() => _exercisePreference = preference),
+                );
+              default:
+                return Container(); // Should not happen
             }
-            if (index == 1) {
-              return ActivityLevelStep(
-                selectedActivityLevel: _activityLevel,
-                onSelection: (level) => setState(() => _activityLevel = level),
-              );
-            }
-            if (index == 2) {
-              return GoalSelectionStep(
-                selectedGoal: _goal,
-                onSelection: (goal) => setState(() => _goal = goal),
-              );
-            }
-            return Container(); // Should not happen
           },
         ),
         bottomNavigationBar: Padding(

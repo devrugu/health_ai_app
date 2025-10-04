@@ -13,3 +13,10 @@ enum Goal {
   buildMuscle,
   getFit,
 }
+
+enum ExercisePreference {
+  cardio,
+  strength,
+  flexibility,
+  mixed,
+}
