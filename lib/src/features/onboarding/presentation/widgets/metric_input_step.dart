@@ -5,13 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class MetricInputStep extends StatelessWidget {
-  final Function(String) onHeightChanged;
-  final Function(String) onWeightChanged;
+  // UPDATED: We now accept controllers instead of callbacks.
+  final TextEditingController heightController;
+  final TextEditingController weightController;
 
   const MetricInputStep({
     super.key,
-    required this.onHeightChanged,
-    required this.onWeightChanged,
+    required this.heightController,
+    required this.weightController,
   });
 
   @override
@@ -29,10 +30,8 @@ class MetricInputStep extends StatelessWidget {
           ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0),
           const SizedBox(height: 8),
           Text(
-            // <-- Not a const
             'This helps us calculate your needs accurately.',
             textAlign: TextAlign.center,
-            // --- CORRECTED ---
             style: TextStyle(
               fontSize: 16,
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
@@ -40,7 +39,8 @@ class MetricInputStep extends StatelessWidget {
           ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1, end: 0),
           const SizedBox(height: 48),
           TextField(
-            onChanged: onHeightChanged,
+            // UPDATED: Assign the controller.
+            controller: heightController,
             decoration: const InputDecoration(
               labelText: 'Height (cm)',
               prefixIcon: Icon(Icons.height),
@@ -50,7 +50,8 @@ class MetricInputStep extends StatelessWidget {
           ).animate().fadeIn(delay: 400.ms).slideX(begin: -0.1, end: 0),
           const SizedBox(height: 24),
           TextField(
-            onChanged: onWeightChanged,
+            // UPDATED: Assign the controller.
+            controller: weightController,
             decoration: const InputDecoration(
               labelText: 'Weight (kg)',
               prefixIcon: Icon(Icons.monitor_weight),
