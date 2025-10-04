@@ -29,12 +29,14 @@ class ActivityLevelStep extends StatelessWidget {
               .fadeIn(delay: 200.ms)
               .slideX(begin: -0.1, end: 0),
           const SizedBox(height: 8),
-          const Text('This helps us estimate your daily calorie burn.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.black54))
-              .animate()
-              .fadeIn(delay: 300.ms)
-              .slideX(begin: -0.1, end: 0),
+          Text(
+              'This helps us estimate your daily calorie burn.', // <-- Not a const
+              textAlign: TextAlign.center,
+              // --- CORRECTED ---
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              )).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1, end: 0),
           const SizedBox(height: 48),
           ...ActivityLevel.values.asMap().entries.map((entry) {
             final index = entry.key;
@@ -51,16 +53,22 @@ class ActivityLevelStep extends StatelessWidget {
                   side: BorderSide(
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary
-                        : Colors.grey.shade300,
+                        : Colors.grey.shade800,
+                    width: 1.5,
                   ),
                 ),
-                // --- CHANGE IS HERE ---
-                // The Row and AnimatedSwitcher for the icon have been removed.
-                child: Text(_getTextForActivityLevel(level)),
+                child: Text(
+                  _getTextForActivityLevel(level),
+                  style: TextStyle(
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.onPrimaryContainer
+                        : null,
+                  ),
+                ),
               ),
             )
                 .animate()
-                .fadeIn(delay: (400 + index * 100).ms) // Staggered delay
+                .fadeIn(delay: (400 + index * 100).ms)
                 .slideX(begin: -0.1, end: 0);
           }),
         ],
@@ -68,8 +76,6 @@ class ActivityLevelStep extends StatelessWidget {
     );
   }
 
-  // I've restored the more descriptive text here for better UX,
-  // as the buttons have enough space for it.
   String _getTextForActivityLevel(ActivityLevel level) {
     switch (level) {
       case ActivityLevel.sedentary:

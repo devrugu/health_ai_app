@@ -26,18 +26,18 @@ class MetricInputStep extends StatelessWidget {
             'What are your measurements?',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          )
-              .animate()
-              .fadeIn(delay: 200.ms)
-              .slideX(begin: -0.1, end: 0), // Slide in from the left
-
+          ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0),
           const SizedBox(height: 8),
-          const Text(
+          Text(
+            // <-- Not a const
             'This helps us calculate your needs accurately.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.black54),
+            // --- CORRECTED ---
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
           ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1, end: 0),
-
           const SizedBox(height: 48),
           TextField(
             onChanged: onHeightChanged,
@@ -48,7 +48,6 @@ class MetricInputStep extends StatelessWidget {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ).animate().fadeIn(delay: 400.ms).slideX(begin: -0.1, end: 0),
-
           const SizedBox(height: 24),
           TextField(
             onChanged: onWeightChanged,

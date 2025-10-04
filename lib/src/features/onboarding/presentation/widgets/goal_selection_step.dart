@@ -29,13 +29,14 @@ class GoalSelectionStep extends StatelessWidget {
               .fadeIn(delay: 200.ms)
               .slideX(begin: -0.1, end: 0),
           const SizedBox(height: 8),
-          const Text(
-                  'We will create a personalized plan to help you achieve it.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.black54))
-              .animate()
-              .fadeIn(delay: 300.ms)
-              .slideX(begin: -0.1, end: 0),
+          Text(
+              'We will create a personalized plan to help you achieve it.', // <-- Not a const
+              textAlign: TextAlign.center,
+              // --- CORRECTED ---
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              )).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1, end: 0),
           const SizedBox(height: 48),
           ...Goal.values.asMap().entries.map((entry) {
             final index = entry.key;
@@ -50,14 +51,19 @@ class GoalSelectionStep extends StatelessWidget {
                       ? Theme.of(context).colorScheme.primaryContainer
                       : null,
                   side: BorderSide(
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey.shade800,
+                      width: 1.5),
+                ),
+                child: Text(
+                  _getTextForGoal(goal),
+                  style: TextStyle(
                     color: isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.grey.shade300,
+                        ? Theme.of(context).colorScheme.onPrimaryContainer
+                        : null,
                   ),
                 ),
-                // --- CHANGE IS HERE ---
-                // The Row and AnimatedSwitcher for the icon have been removed.
-                child: Text(_getTextForGoal(goal)),
               ),
             )
                 .animate()
