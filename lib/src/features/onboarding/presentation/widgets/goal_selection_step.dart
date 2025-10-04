@@ -55,24 +55,9 @@ class GoalSelectionStep extends StatelessWidget {
                         : Colors.grey.shade300,
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(_getTextForGoal(goal)),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                      child: isSelected
-                          ? const Padding(
-                              padding: EdgeInsets.only(left: 8.0),
-                              child: Icon(Icons.check_circle, size: 20),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ],
-                ),
+                // --- CHANGE IS HERE ---
+                // The Row and AnimatedSwitcher for the icon have been removed.
+                child: Text(_getTextForGoal(goal)),
               ),
             )
                 .animate()

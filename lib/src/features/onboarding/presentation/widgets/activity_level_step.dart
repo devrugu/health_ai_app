@@ -54,26 +54,9 @@ class ActivityLevelStep extends StatelessWidget {
                         : Colors.grey.shade300,
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(_getTextForActivityLevel(level)),
-                    // Use an AnimatedSwitcher for a smooth icon appearance
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                      child: isSelected
-                          ? const Padding(
-                              padding: EdgeInsets.only(left: 8.0),
-                              child: Icon(Icons.check_circle, size: 20),
-                            )
-                          : const SizedBox
-                              .shrink(), // Empty box when not selected
-                    ),
-                  ],
-                ),
+                // --- CHANGE IS HERE ---
+                // The Row and AnimatedSwitcher for the icon have been removed.
+                child: Text(_getTextForActivityLevel(level)),
               ),
             )
                 .animate()
@@ -85,16 +68,18 @@ class ActivityLevelStep extends StatelessWidget {
     );
   }
 
+  // I've restored the more descriptive text here for better UX,
+  // as the buttons have enough space for it.
   String _getTextForActivityLevel(ActivityLevel level) {
     switch (level) {
       case ActivityLevel.sedentary:
-        return 'Sedentary';
+        return 'Sedentary (little or no exercise)';
       case ActivityLevel.lightlyActive:
-        return 'Lightly Active';
+        return 'Lightly Active (1-3 days/week)';
       case ActivityLevel.moderatelyActive:
-        return 'Moderately Active';
+        return 'Moderately Active (3-5 days/week)';
       case ActivityLevel.veryActive:
-        return 'Very Active';
+        return 'Very Active (6-7 days/week)';
     }
   }
 }
