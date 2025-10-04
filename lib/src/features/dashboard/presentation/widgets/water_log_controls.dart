@@ -3,15 +3,15 @@
 import 'package:flutter/material.dart';
 
 class WaterLogControls extends StatelessWidget {
-  final int glassesConsumed;
-  final int glassesGoal;
+  final int waterConsumedMl;
+  final int waterGoalMl;
   final VoidCallback onAdd;
   final VoidCallback onRemove;
 
   const WaterLogControls({
     super.key,
-    required this.glassesConsumed,
-    required this.glassesGoal,
+    required this.waterConsumedMl,
+    required this.waterGoalMl,
     required this.onAdd,
     required this.onRemove,
   });
@@ -19,38 +19,37 @@ class WaterLogControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Button is disabled if we can't remove more water
-    final canRemove = glassesConsumed > 0;
-    // Button is disabled if we've already reached the goal
-    final canAdd = glassesConsumed < glassesGoal;
+    final canRemove = waterConsumedMl > 0;
+    final canAdd = waterConsumedMl < waterGoalMl;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // The "Remove" button
+        // The "Remove" button - now with a reddish color
         IconButton.filled(
           style: IconButton.styleFrom(
-            backgroundColor: theme.colorScheme.surface,
+            backgroundColor: theme.colorScheme.errorContainer.withOpacity(0.5),
+            foregroundColor: theme.colorScheme.onErrorContainer,
           ),
           iconSize: 20,
-          onPressed: canRemove ? onRemove : null, // Disable if needed
+          onPressed: canRemove ? onRemove : null,
           icon: const Icon(Icons.remove),
         ),
         const SizedBox(width: 24),
 
-        // The text display
+        // Updated text display for milliliters
         Text.rich(
           TextSpan(
             children: [
               TextSpan(
-                text: '$glassesConsumed',
+                text: '$waterConsumedMl',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.primary,
                 ),
               ),
               TextSpan(
-                text: ' / $glassesGoal glasses',
+                text: ' / ${waterGoalMl}ml',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurface.withOpacity(0.7),
                 ),
@@ -60,13 +59,15 @@ class WaterLogControls extends StatelessWidget {
         ),
         const SizedBox(width: 24),
 
-        // The "Add" button
+        // The "Add" button - now with a greenish color
         IconButton.filled(
           style: IconButton.styleFrom(
-            backgroundColor: theme.colorScheme.surface,
+            // A deep green that works well on dark themes
+            backgroundColor: Colors.green.shade800.withOpacity(0.7),
+            foregroundColor: Colors.green.shade200,
           ),
           iconSize: 20,
-          onPressed: canAdd ? onAdd : null, // Disable if needed
+          onPressed: canAdd ? onAdd : null,
           icon: const Icon(Icons.add),
         ),
       ],
