@@ -1,6 +1,6 @@
 // lib/src/features/dashboard/presentation/widgets/water_tracker_card.dart
 
-import 'dart:math'; // We need this for the min() and max() functions
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/cup_size_selector.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_log_controls.dart';
@@ -13,32 +13,28 @@ class WaterTrackerCard extends StatefulWidget {
 }
 
 class _WaterTrackerCardState extends State<WaterTrackerCard> {
-  // --- STATE VARIABLES (Now using Milliliters) ---
-  final int _waterGoalMl = 2500; // 2.5 Liters
+  final int _waterGoalMl = 2500;
   int _waterConsumedMl = 0;
 
-  // State for the cup selector
   final List<int> _cupSizes = const [250, 330, 500];
-  late int _selectedCupSize; // 'late' because it's initialized in initState
+  late int _selectedCupSize;
 
   @override
   void initState() {
     super.initState();
-    // Set the default selected cup size when the widget is first created.
     _selectedCupSize = _cupSizes.first;
   }
 
-  // --- STATE METHODS (Updated for mL) ---
   void _addWater() {
     setState(() {
-      // Add the selected cup size, ensuring it doesn't exceed the goal.
-      _waterConsumedMl = min(_waterGoalMl, _waterConsumedMl + _selectedCupSize);
+      // --- CHANGE 1: REMOVED THE LIMIT ---
+      // The min() function has been removed to allow exceeding the goal.
+      _waterConsumedMl = _waterConsumedMl + _selectedCupSize;
     });
   }
 
   void _removeWater() {
     setState(() {
-      // Remove the selected cup size, ensuring it doesn't go below zero.
       _waterConsumedMl = max(0, _waterConsumedMl - _selectedCupSize);
     });
   }
@@ -49,14 +45,21 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
     });
   }
 
-  // Helper to calculate the progress for the bar
-  double get _progress => _waterConsumedMl / _waterGoalMl;
+  // Progress is now capped at 1.0 for the VISUAL bar only.
+  // The actual data (_waterConsumedMl) can go higher.
+  double get _visualProgress => min(1.0, _waterConsumedMl / _waterGoalMl);
+  // We need the actual progress for the percentage text.
+  double get _actualProgress => _waterConsumedMl / _waterGoalMl;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Convert goal to a string in Liters for display
     final goalInLiters = (_waterGoalMl / 1000).toStringAsFixed(1);
+
+    // --- CHANGE 2: VISUAL REWARD ---
+    // Determine the color of the progress bar based on whether the goal is met.
+    final isGoalMet = _waterConsumedMl >= _waterGoalMl;
+    final progressColor = isGoalMet ? Colors.green.shade400 : Colors.blueAccent;
 
     return Card(
       color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
@@ -69,7 +72,8 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
           children: [
             Row(
               children: [
-                const Icon(Icons.opacity_rounded, color: Colors.blueAccent),
+                Icon(Icons.opacity_rounded,
+                    color: progressColor), // Icon color also updates
                 const SizedBox(width: 8),
                 Text(
                   "Water Intake",
@@ -87,33 +91,34 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
                   style: theme.textTheme.bodyLarge,
                 ),
                 Text(
-                  "${(_progress * 100).toInt()}%",
+                  // Use the actual progress for the percentage text
+                  "${(_actualProgress * 100).toInt()}%",
                   style: theme.textTheme.bodyLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value:
-                  _progress.isNaN ? 0 : _progress, // Handle potential 0/0 case
-              minHeight: 12,
-              borderRadius: BorderRadius.circular(6),
-              backgroundColor: theme.colorScheme.surface,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+            // Use an AnimatedContainer for a smooth color change transition
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: 12,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: _visualProgress,
+                  backgroundColor: theme.colorScheme.surface,
+                  valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                ),
+              ),
             ),
             const SizedBox(height: 20),
-
-            // Our new cup size selector widget
             CupSizeSelector(
               cupSizes: _cupSizes,
               selectedSize: _selectedCupSize,
               onSizeSelected: _onCupSizeChanged,
             ),
             const SizedBox(height: 12),
-
-            // Our restyled and updated controls
             WaterLogControls(
               waterConsumedMl: _waterConsumedMl,
               waterGoalMl: _waterGoalMl,

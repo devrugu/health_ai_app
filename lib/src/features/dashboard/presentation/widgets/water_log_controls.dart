@@ -20,12 +20,12 @@ class WaterLogControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final canRemove = waterConsumedMl > 0;
-    final canAdd = waterConsumedMl < waterGoalMl;
+    // --- CHANGE: The '+' button can now always be used ---
+    // final canAdd = waterConsumedMl < waterGoalMl; <-- This line is removed
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // The "Remove" button - now with a reddish color
         IconButton.filled(
           style: IconButton.styleFrom(
             backgroundColor: theme.colorScheme.errorContainer.withOpacity(0.5),
@@ -36,8 +36,6 @@ class WaterLogControls extends StatelessWidget {
           icon: const Icon(Icons.remove),
         ),
         const SizedBox(width: 24),
-
-        // Updated text display for milliliters
         Text.rich(
           TextSpan(
             children: [
@@ -58,16 +56,13 @@ class WaterLogControls extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 24),
-
-        // The "Add" button - now with a greenish color
         IconButton.filled(
           style: IconButton.styleFrom(
-            // A deep green that works well on dark themes
             backgroundColor: Colors.green.shade800.withOpacity(0.7),
             foregroundColor: Colors.green.shade200,
           ),
           iconSize: 20,
-          onPressed: canAdd ? onAdd : null,
+          onPressed: onAdd, // No longer checks `canAdd`
           icon: const Icon(Icons.add),
         ),
       ],
