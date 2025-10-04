@@ -12,76 +12,111 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Define a seed color based on your screenshots (a soft lavender/purple)
-    final seedColor = Colors.deepPurple.shade100;
+    // --- KEY CHANGE 1: Use a more saturated seed color ---
+    // This gives the theme generator a better starting point for a vibrant palette.
+    const seedColor = Colors.deepPurple;
+
+    // Generate our color scheme with dark brightness
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: Brightness.dark,
+    );
 
     return MaterialApp(
       title: 'Health AI App',
-      // The overall theme of the application
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seedColor,
-          brightness: Brightness.light,
-        ),
+        brightness: Brightness.dark,
+        colorScheme: colorScheme,
         useMaterial3: true,
 
-        // Define the theme for all ElevatedButton widgets
+        // --- KEY CHANGE 2: Define a specific background color ---
+        // A very dark grey is often better than pure black.
+        scaffoldBackgroundColor: const Color(0xFF121212),
+
+        // --- KEY CHANGE 3: Explicitly define text styles for contrast ---
+        textTheme: Typography.whiteMountainView.apply(
+          // Set a bright default color for body text (like subtitles)
+          bodyColor: Colors.grey[300],
+          // Ensure headlines are pure white
+          displayColor: Colors.white,
+        ),
+
+        appBarTheme: AppBarTheme(
+          backgroundColor: const Color(0xFF121212), // Match scaffold background
+          elevation: 0, // Remove shadow for a flatter look
+          titleTextStyle: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: seedColor, // Button background color
-            foregroundColor: Colors.black, // Button text/icon color
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12), // Softer corners
+              borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
+          ).copyWith(
+            // --- KEY CHANGE 4: Style for DISABLED buttons ---
+            // Make disabled buttons visually distinct but not invisible.
+            backgroundColor: MaterialStateProperty.resolveWith<Color>(
+              (Set<MaterialState> states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return Colors.white.withOpacity(0.12);
+                }
+                return colorScheme.primary;
+              },
+            ),
+            foregroundColor: MaterialStateProperty.resolveWith<Color>(
+              (Set<MaterialState> states) {
+                if (states.contains(MaterialState.disabled)) {
+                  return Colors.white.withOpacity(0.38);
+                }
+                return colorScheme.onPrimary;
+              },
+            ),
           ),
         ),
 
-        // Define the theme for all OutlinedButton widgets
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.black,
-            side: BorderSide(color: Colors.grey.shade300), // Border color
+            foregroundColor: colorScheme.onSurface,
+            // --- KEY CHANGE 5: Brighter border for unselected buttons ---
+            side: BorderSide(color: Colors.grey.shade800, width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ).copyWith(
-            // Specific style for when the button is selected
-            // We will use this to show feedback to the user
-            backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-              (Set<MaterialState> states) {
-                if (states.contains(MaterialState.selected)) {
-                  return seedColor.withOpacity(0.8);
-                }
-                return null; // Use the default background
-              },
+              fontWeight: FontWeight.w600, // Slightly bolder text
             ),
           ),
         ),
 
-        // Define the theme for all text input fields
         inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white.withOpacity(0.05),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+            borderSide: BorderSide.none, // No border for a cleaner look
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: seedColor, width: 2),
+            borderSide: BorderSide(color: colorScheme.primary, width: 2),
           ),
+          labelStyle: TextStyle(color: Colors.grey[400]),
         ),
       ),
       home: const WelcomeScreen(),
