@@ -1,0 +1,157 @@
+// lib/src/features/workout/presentation/screens/log_workout_screen.dart
+
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
+import 'package:health_ai_app/src/features/workout/domain/workout_models.dart';
+
+class LogWorkoutScreen extends StatefulWidget {
+  const LogWorkoutScreen({super.key});
+
+  @override
+  State<LogWorkoutScreen> createState() => _LogWorkoutScreenState();
+}
+
+class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
+  // --- STATE VARIABLES ---
+  ExercisePreference? _selectedType;
+  double _durationInMinutes = 30;
+
+  // --- THIS IS THE FIX ---
+  // We initialize the selected intensity with a default value.
+  // This ensures the SegmentedButton's 'selected' set is never empty.
+  WorkoutIntensity _selectedIntensity = WorkoutIntensity.medium;
+
+  // --- VALIDATION ---
+  // The form is now valid as soon as a type is selected, since the other two have defaults.
+  bool get _isFormValid => _selectedType != null;
+
+  // --- SUBMIT ACTION ---
+  void _submitLog() {
+    if (_isFormValid) {
+      final log = WorkoutLog(
+        type: _selectedType!,
+        durationInMinutes: _durationInMinutes.round(),
+        intensity: _selectedIntensity,
+      );
+      print(
+          'Workout Logged: Type=${log.type}, Duration=${log.durationInMinutes}min, Intensity=${log.intensity}');
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Log Your Workout'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- WORKOUT TYPE SELECTION ---
+            _buildSectionHeader(theme, 'Workout Type'),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: ExercisePreference.values.map((type) {
+                return ChoiceChip(
+                  label: Text(_getTextForPreference(type)),
+                  selected: _selectedType == type,
+                  onSelected: (_) => setState(() => _selectedType = type),
+                );
+              }).toList(),
+            ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1),
+
+            const SizedBox(height: 32),
+
+            // --- DURATION SLIDER ---
+            _buildSectionHeader(theme, 'Duration'),
+            const SizedBox(height: 8),
+            Text(
+              '${_durationInMinutes.round()} minutes',
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Slider(
+              value: _durationInMinutes,
+              min: 0,
+              max: 180,
+              divisions: 180 ~/ 5,
+              label: '${_durationInMinutes.round()} min',
+              onChanged: (value) => setState(() => _durationInMinutes = value),
+            ).animate().fadeIn(delay: 500.ms).slideX(begin: -0.1),
+
+            const SizedBox(height: 32),
+
+            // --- INTENSITY SELECTION ---
+            _buildSectionHeader(theme, 'Intensity'),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<WorkoutIntensity>(
+                segments: const [
+                  ButtonSegment(
+                      value: WorkoutIntensity.low,
+                      label: Text('Low'),
+                      icon: Icon(Icons.arrow_downward)),
+                  ButtonSegment(
+                      value: WorkoutIntensity.medium,
+                      label: Text('Medium'),
+                      icon: Icon(Icons.drag_handle)),
+                  ButtonSegment(
+                      value: WorkoutIntensity.high,
+                      label: Text('High'),
+                      icon: Icon(Icons.arrow_upward)),
+                ],
+                // The selected set is now guaranteed to always have one item.
+                selected: {_selectedIntensity},
+                // We enable multiple selection, but our logic only ever sets one.
+                // Or, more robustly, ensure it's single-selection.
+                multiSelectionEnabled: false,
+                emptySelectionAllowed: false,
+                onSelectionChanged: (selection) {
+                  // The new set will contain one item. We update our state with it.
+                  setState(() {
+                    _selectedIntensity = selection.first;
+                  });
+                },
+              ),
+            ).animate().fadeIn(delay: 700.ms).slideX(begin: -0.1),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(24.0).copyWith(bottom: 48),
+        child: ElevatedButton(
+          onPressed: _isFormValid ? _submitLog : null,
+          child: const Text('Log Workout'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(ThemeData theme, String title) {
+    return Text(
+      title,
+      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    ).animate().fadeIn(delay: 200.ms);
+  }
+
+  String _getTextForPreference(ExercisePreference preference) {
+    switch (preference) {
+      case ExercisePreference.cardio:
+        return 'Cardio';
+      case ExercisePreference.strength:
+        return 'Strength';
+      case ExercisePreference.flexibility:
+        return 'Flexibility';
+      case ExercisePreference.mixed:
+        return 'Mixed';
+    }
+  }
+}

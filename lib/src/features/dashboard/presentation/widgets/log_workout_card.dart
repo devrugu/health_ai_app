@@ -1,6 +1,7 @@
 // lib/src/features/dashboard/presentation/widgets/log_workout_card.dart
 
 import 'package:flutter/material.dart';
+import 'package:health_ai_app/src/features/workout/presentation/screens/log_workout_screen.dart'; // Import the new screen
 
 class LogWorkoutCard extends StatelessWidget {
   const LogWorkoutCard({super.key});
@@ -17,7 +18,6 @@ class LogWorkoutCard extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            // Icon for visual representation
             CircleAvatar(
               radius: 24,
               backgroundColor: theme.colorScheme.tertiaryContainer,
@@ -27,7 +27,6 @@ class LogWorkoutCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            // Text content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,11 +47,17 @@ class LogWorkoutCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            // The action button
+            // --- UPDATED BUTTON LOGIC ---
             ElevatedButton(
               onPressed: () {
-                // In the next step, this will open a new screen.
-                print("Log Workout button pressed!");
+                // Navigate to the LogWorkoutScreen
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const LogWorkoutScreen(),
+                    // This makes the screen slide up from the bottom, a common UX pattern for forms.
+                    fullscreenDialog: true,
+                  ),
+                );
               },
               child: const Icon(Icons.add),
             ),
