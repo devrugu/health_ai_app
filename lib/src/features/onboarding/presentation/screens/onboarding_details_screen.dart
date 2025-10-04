@@ -6,6 +6,7 @@ import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.d
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/activity_level_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/goal_selection_step.dart';
+import 'package:health_ai_app/src/features/dashboard/presentation/screens/dashboard_screen.dart';
 
 class OnboardingDetailsScreen extends StatefulWidget {
   const OnboardingDetailsScreen({super.key});
@@ -81,8 +82,11 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
           curve: Curves.easeOutQuad,
         );
       } else {
-        print(
-            'Onboarding complete! Data: Height: $_height, Weight: $_weight, Activity: $_activityLevel, Goal: $_goal');
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          (Route<dynamic> route) =>
+              false, // This predicate always returns false, clearing the stack.
+        );
       }
     }
   }
