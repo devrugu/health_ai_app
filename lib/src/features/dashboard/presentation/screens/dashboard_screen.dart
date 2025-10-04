@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/daily_summary_card.dart';
-import 'package:health_ai_app/src/features/dashboard/presentation/widgets/meal_plan_card.dart'; // Import new card
+import 'package:health_ai_app/src/features/dashboard/presentation/widgets/log_workout_card.dart'; // Import the new card
+import 'package:health_ai_app/src/features/dashboard/presentation/widgets/meal_plan_card.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_tracker_card.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -41,12 +42,20 @@ class DashboardScreen extends StatelessWidget {
               .fadeIn(delay: 700.ms, duration: 400.ms)
               .slideY(begin: 0.2, end: 0),
 
-          const SizedBox(height: 24), // Add spacing before the meal plan
+          const SizedBox(height: 24),
 
-          // --- ADDED THE MEAL PLAN CARD ---
-          const MealPlanCard()
+          // NEW: Add the Log Workout card here, between water and meals.
+          const LogWorkoutCard()
               .animate()
               .fadeIn(delay: 900.ms, duration: 400.ms)
+              .slideY(begin: 0.2, end: 0),
+
+          const SizedBox(height: 24),
+
+          const MealPlanCard()
+              .animate()
+              // Adjust delay to follow the new card
+              .fadeIn(delay: 1100.ms, duration: 400.ms)
               .slideY(begin: 0.2, end: 0),
         ],
       ),

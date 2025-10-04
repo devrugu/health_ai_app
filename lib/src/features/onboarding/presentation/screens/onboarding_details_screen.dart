@@ -27,18 +27,35 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
   Goal? _goal;
   ExercisePreference? _exercisePreference;
 
-  late final List<Widget> _onboardingSteps; // We keep this for the total count
+  // --- THIS IS THE FIX ---
+  // The 'late final' keywords are removed.
+  // The controllers are initialized immediately upon declaration.
+  // This guarantees they exist before the build method is ever called.
+  final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+
+  // We can keep this for the page count.
+  final List<Widget> _onboardingSteps = [
+    Container(),
+    Container(),
+    Container(),
+    Container(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    // We only need the count here now. The widgets will be built on-the-fly.
-    _onboardingSteps = [
-      Container(), // Placeholder for MetricInputStep
-      Container(), // Placeholder for ActivityLevelStep
-      Container(), // Placeholder for GoalSelectionStep
-      Container(), // Placeholder for ExercisePreferenceStep
-    ];
+    // The controllers are already initialized, so we just add the listeners here.
+    _heightController.addListener(() {
+      setState(() {
+        _height = double.tryParse(_heightController.text);
+      });
+    });
+    _weightController.addListener(() {
+      setState(() {
+        _weight = double.tryParse(_weightController.text);
+      });
+    });
 
     _pageController.addListener(() {
       final newIndex = _pageController.page?.round();
@@ -52,9 +69,14 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
 
   @override
   void dispose() {
+    // Disposing is still essential to prevent memory leaks.
     _pageController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
+
+  // No changes to _handleNext, _handleBack, or _isCurrentPageValid
 
   void _handleNext() {
     if (_isCurrentPageValid()) {
@@ -128,21 +150,16 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
             ),
           ),
         ),
-        // --- THIS IS THE CORRECTED IMPLEMENTATION ---
         body: PageView.builder(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: _onboardingSteps.length,
           itemBuilder: (context, index) {
-            // By building the widgets here, we ensure they are always created
-            // with the most up-to-date state variables.
             switch (index) {
               case 0:
                 return MetricInputStep(
-                  onHeightChanged: (value) =>
-                      setState(() => _height = double.tryParse(value)),
-                  onWeightChanged: (value) =>
-                      setState(() => _weight = double.tryParse(value)),
+                  heightController: _heightController,
+                  weightController: _weightController,
                 );
               case 1:
                 return ActivityLevelStep(
@@ -162,7 +179,7 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
                       setState(() => _exercisePreference = preference),
                 );
               default:
-                return Container(); // Should not happen
+                return Container();
             }
           },
         ),
