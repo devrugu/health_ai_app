@@ -1,0 +1,15 @@
+// lib/src/features/onboarding/domain/onboarding_models.dart
+
+enum ActivityLevel {
+  sedentary,
+  lightlyActive,
+  moderatelyActive,
+  veryActive,
+}
+
+enum Goal {
+  loseWeight,
+  gainWeight,
+  buildMuscle,
+  getFit,
+}

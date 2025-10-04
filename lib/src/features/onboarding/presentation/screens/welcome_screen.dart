@@ -1,6 +1,7 @@
 // lib/src/features/onboarding/presentation/screens/welcome_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // Import the animation package
 import 'package:health_ai_app/src/features/onboarding/presentation/screens/onboarding_details_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -8,26 +9,26 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold provides the basic structure of a visual screen.
     return Scaffold(
-      body: SafeArea( // SafeArea keeps our content from being hidden by system notches or bars.
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0), // Add some padding around all content.
+          padding: const EdgeInsets.all(24.0),
           child: Column(
-            // mainAxisAlignment positions children vertically. .center places them in the middle.
-            mainAxisAlignment: MainAxisAlignment.center, 
-            // crossAxisAlignment positions children horizontally. .stretch makes them fill the width.
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // An icon to represent the app.
+              const Spacer(), // Pushes content to the center
+
+              // The .animate() extension comes from the flutter_animate package.
               const Icon(
                 Icons.fitness_center,
                 size: 80,
-                color: Colors.blueAccent,
-              ),
-              const SizedBox(height: 32), // A spacer box for vertical distance.
+              )
+                  .animate()
+                  .fade(duration: 500.ms) // Fade in over 500 milliseconds
+                  .scale(delay: 200.ms), // Then scale up, with a 200ms delay
 
-              // The main welcome title.
+              const SizedBox(height: 32),
               const Text(
                 'Welcome to Your Health AI',
                 textAlign: TextAlign.center,
@@ -35,10 +36,13 @@ class WelcomeScreen extends StatelessWidget {
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 16),
+              )
+                  .animate()
+                  .fadeIn(
+                      delay: 500.ms, duration: 400.ms) // Fade in after the icon
+                  .slideY(begin: 0.2, end: 0), // Slide up slightly as it fades
 
-              // A short description of the app's purpose.
+              const SizedBox(height: 16),
               const Text(
                 'Let\'s start your personalized journey to a healthier you. We\'ll ask a few questions to tailor your plan.',
                 textAlign: TextAlign.center,
@@ -46,23 +50,34 @@ class WelcomeScreen extends StatelessWidget {
                   fontSize: 16,
                   color: Colors.black54,
                 ),
-              ),
-              const SizedBox(height: 48),
+              )
+                  .animate()
+                  .fadeIn(delay: 700.ms, duration: 400.ms)
+                  .slideY(begin: 0.2, end: 0),
 
-              // The main action button to start the onboarding process.
+              const Spacer(), // Pushes the button towards the bottom
               ElevatedButton(
                 onPressed: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const OnboardingDetailsScreen()),
-  );
-},
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 18),
-                ),
+                  Navigator.push(
+                    context,
+                    // A more elegant page transition
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const OnboardingDetailsScreen(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                    ),
+                  );
+                },
                 child: const Text('Get Started'),
-              ),
+              )
+                  .animate()
+                  .fadeIn(delay: 900.ms, duration: 400.ms)
+                  .slideY(begin: 0.3, end: 0),
+
+              const SizedBox(height: 20), // Some padding at the bottom
             ],
           ),
         ),

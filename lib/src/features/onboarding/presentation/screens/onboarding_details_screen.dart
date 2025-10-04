@@ -1,6 +1,8 @@
 // lib/src/features/onboarding/presentation/screens/onboarding_details_screen.dart
 
 import 'package:flutter/material.dart';
+// --- CORRECTED IMPORT PATHS ---
+import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/activity_level_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/goal_selection_step.dart';
@@ -9,30 +11,58 @@ class OnboardingDetailsScreen extends StatefulWidget {
   const OnboardingDetailsScreen({super.key});
 
   @override
-  State<OnboardingDetailsScreen> createState() => _OnboardingDetailsScreenState();
+  State<OnboardingDetailsScreen> createState() =>
+      _OnboardingDetailsScreenState();
 }
 
 class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
   final PageController _pageController = PageController();
-  
-  // NEW: A variable to keep track of the current page index
   int _currentPageIndex = 0;
 
-  // NEW: Update the list to include all our new steps
-  final List<Widget> _onboardingSteps = [
-    const MetricInputStep(),
-    const ActivityLevelStep(),
-    const GoalSelectionStep(),
-  ];
+  // --- STATE VARIABLES ---
+  double? _height;
+  double? _weight;
+  ActivityLevel? _activityLevel;
+  Goal? _goal;
+
+  // --- LATE INITIALIZED WIDGETS ---
+  late final List<Widget> _onboardingSteps;
 
   @override
   void initState() {
     super.initState();
-    // NEW: Add a listener to the page controller to update our index variable
+    _onboardingSteps = [
+      MetricInputStep(
+        onHeightChanged: (value) =>
+            setState(() => _height = double.tryParse(value)),
+        onWeightChanged: (value) =>
+            setState(() => _weight = double.tryParse(value)),
+      ),
+      ActivityLevelStep(
+        selectedActivityLevel: _activityLevel,
+        onSelection: (level) {
+          setState(() {
+            _activityLevel = level;
+          });
+        },
+      ),
+      GoalSelectionStep(
+        selectedGoal: _goal,
+        onSelection: (goal) {
+          setState(() {
+            _goal = goal;
+          });
+        },
+      ),
+    ];
+
     _pageController.addListener(() {
-      setState(() {
-        _currentPageIndex = _pageController.page?.round() ?? 0;
-      });
+      final newIndex = _pageController.page?.round();
+      if (newIndex != null && newIndex != _currentPageIndex) {
+        setState(() {
+          _currentPageIndex = newIndex;
+        });
+      }
     });
   }
 
@@ -42,53 +72,110 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
     super.dispose();
   }
 
+  // --- NAVIGATION LOGIC ---
+  void _handleNext() {
+    if (_isCurrentPageValid()) {
+      if (_currentPageIndex < _onboardingSteps.length - 1) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutQuad,
+        );
+      } else {
+        print(
+            'Onboarding complete! Data: Height: $_height, Weight: $_weight, Activity: $_activityLevel, Goal: $_goal');
+      }
+    }
+  }
+
+  void _handleBack() {
+    if (_currentPageIndex > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutQuad,
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  // --- VALIDATION LOGIC ---
+  bool _isCurrentPageValid() {
+    switch (_currentPageIndex) {
+      case 0:
+        return _height != null &&
+            _height! > 50 &&
+            _weight != null &&
+            _weight! > 20;
+      case 1:
+        return _activityLevel != null;
+      case 2:
+        return _goal != null;
+      default:
+        return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // NEW: Determine if the current page is the last one
     final isLastPage = _currentPageIndex == _onboardingSteps.length - 1;
+    final isPageValid = _isCurrentPageValid();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Your Details'),
-        // NEW: Add a progress indicator in the app bar
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4.0),
-          child: LinearProgressIndicator(
-            value: (_currentPageIndex + 1) / _onboardingSteps.length,
-            backgroundColor: Colors.grey[300],
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _handleBack,
+          ),
+          title: const Text('Your Details'),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(4.0),
+            child: LinearProgressIndicator(
+              value: (_currentPageIndex + 1) / _onboardingSteps.length,
+              backgroundColor: Colors.grey[300],
+            ),
           ),
         ),
-      ),
-      body: PageView(
-        controller: _pageController,
-        // The user can no longer swipe to change pages
-        physics: const NeverScrollableScrollPhysics(), 
-        children: _onboardingSteps,
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(24.0).copyWith(bottom: 48),
-        child: ElevatedButton(
-          onPressed: () {
-            // NEW: Logic to navigate or finish
-            if (isLastPage) {
-              // This is the finish button
-              print('Onboarding complete!');
-              // Later, we will navigate to the main app dashboard here.
-            } else {
-              // This is the next button
-              _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
+        body: PageView.builder(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _onboardingSteps.length,
+          itemBuilder: (context, index) {
+            // Rebuild the step widgets with the current state
+            if (index == 0) {
+              return MetricInputStep(
+                onHeightChanged: (value) =>
+                    setState(() => _height = double.tryParse(value)),
+                onWeightChanged: (value) =>
+                    setState(() => _weight = double.tryParse(value)),
               );
             }
+            if (index == 1) {
+              return ActivityLevelStep(
+                selectedActivityLevel: _activityLevel,
+                onSelection: (level) => setState(() => _activityLevel = level),
+              );
+            }
+            if (index == 2) {
+              return GoalSelectionStep(
+                selectedGoal: _goal,
+                onSelection: (goal) => setState(() => _goal = goal),
+              );
+            }
+            return Container(); // Should not happen
           },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(fontSize: 18),
+        ),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.all(24.0).copyWith(bottom: 48),
+          child: ElevatedButton(
+            onPressed: isPageValid ? _handleNext : null,
+            child: Text(isLastPage ? 'Finish' : 'Next'),
           ),
-          // NEW: Change the button text based on the current page
-          child: Text(isLastPage ? 'Finish' : 'Next'),
         ),
       ),
     );

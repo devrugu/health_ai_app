@@ -2,9 +2,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class MetricInputStep extends StatelessWidget {
-  const MetricInputStep({super.key});
+  final Function(String) onHeightChanged;
+  final Function(String) onWeightChanged;
+
+  const MetricInputStep({
+    super.key,
+    required this.onHeightChanged,
+    required this.onWeightChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,43 +25,42 @@ class MetricInputStep extends StatelessWidget {
           const Text(
             'What are your measurements?',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          )
+              .animate()
+              .fadeIn(delay: 200.ms)
+              .slideX(begin: -0.1, end: 0), // Slide in from the left
+
           const SizedBox(height: 8),
           const Text(
             'This helps us calculate your needs accurately.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 16, color: Colors.black54),
-          ),
-          const SizedBox(height: 48),
+          ).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1, end: 0),
 
-          // Input field for Height
+          const SizedBox(height: 48),
           TextField(
+            onChanged: onHeightChanged,
             decoration: const InputDecoration(
               labelText: 'Height (cm)',
-              border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.height),
             ),
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          ),
-          const SizedBox(height: 24),
+          ).animate().fadeIn(delay: 400.ms).slideX(begin: -0.1, end: 0),
 
-          // Input field for Weight
+          const SizedBox(height: 24),
           TextField(
+            onChanged: onWeightChanged,
             decoration: const InputDecoration(
               labelText: 'Weight (kg)',
-              border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.monitor_weight),
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
             ],
-          ),
+          ).animate().fadeIn(delay: 500.ms).slideX(begin: -0.1, end: 0),
         ],
       ),
     );
