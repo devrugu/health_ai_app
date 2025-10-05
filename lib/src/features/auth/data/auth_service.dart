@@ -76,6 +76,45 @@ class AuthService {
     }
   }
 
+  // --- PHONE SIGN-IN ---
+
+  // Step 1: Send OTP to the user's phone
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required void Function(PhoneAuthCredential) verificationCompleted,
+    required void Function(FirebaseAuthException) verificationFailed,
+    required void Function(String, int?) codeSent,
+    required void Function(String) codeAutoRetrievalTimeout,
+  }) async {
+    await _firebaseAuth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: verificationCompleted,
+      verificationFailed: verificationFailed,
+      codeSent: codeSent,
+      codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+    );
+  }
+
+  // Step 2: Sign in with the OTP
+  Future<UserCredential> signInWithOtp({
+    // Return type is now non-nullable
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    try {
+      final AuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
+      // If successful, this will return the credential
+      return await _firebaseAuth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      // Re-throw the exception to be caught by the UI layer
+      // This is crucial for our new UX logic.
+      throw Exception(e.message);
+    }
+  }
+
   // --- SIGN OUT ---
   Future<void> signOut() async {
     // We need to sign out of both Google and Firebase
