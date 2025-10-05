@@ -1,5 +1,6 @@
 // lib/src/features/onboarding/presentation/screens/onboarding_details_screen.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
@@ -86,8 +87,10 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
           curve: Curves.easeOutQuad,
         );
       } else {
-        print(
-            'Onboarding complete! Data: Height: $_height, Weight: $_weight, Activity: $_activityLevel, Goal: $_goal, Exercise: $_exercisePreference');
+        if (kDebugMode) {
+          print(
+              'Onboarding complete! Data: Height: $_height, Weight: $_weight, Activity: $_activityLevel, Goal: $_goal, Exercise: $_exercisePreference');
+        }
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const DashboardScreen()),
           (Route<dynamic> route) => false,
@@ -132,7 +135,7 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) return;
         _handleBack();
       },

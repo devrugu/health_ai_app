@@ -37,15 +37,15 @@ class WelcomeScreen extends StatelessWidget {
                   .slideY(begin: 0.2, end: 0),
               const SizedBox(height: 16),
               Text(
-                // <-- This is a Text widget, not a const anymore
                 'Let\'s start your personalized journey to a healthier you. We\'ll ask a few questions to tailor your plan.',
                 textAlign: TextAlign.center,
-                // --- CORRECTED ---
-                // Use a theme-aware color that is semi-transparent white.
                 style: TextStyle(
                   fontSize: 16,
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  // FIX: Use the new withAlpha method.
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withAlpha(178), // approx 0.7 opacity
                 ),
               )
                   .animate()
@@ -71,11 +71,12 @@ class WelcomeScreen extends StatelessWidget {
                   .animate()
                   .fadeIn(delay: 900.ms, duration: 400.ms)
                   .slideY(begin: 0.3, end: 0),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               TextButton(
                 onPressed: () => AuthService().signOut(),
                 child: const Text('Sign Out'),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),

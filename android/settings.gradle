@@ -19,11 +19,12 @@ pluginManagement {
 
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "7.3.0" apply false
-    // START: FlutterFire Configuration
+    // UPDATED: AGP version to match Gradle 8.7
+    id "com.android.application" version "8.5.0" apply false
     id "com.google.gms.google-services" version "4.3.15" apply false
-    // END: FlutterFire Configuration
-    id "org.jetbrains.kotlin.android" version "1.8.22" apply false
+    // UPDATED: Kotlin version to a modern, compatible one.
+    // Let's stick with 1.9.22 for now as 2.x can be unstable with some packages.
+    id "org.jetbrains.kotlin.android" version "1.9.22" apply false
 }
 
 include ":app"

@@ -10,8 +10,9 @@ class DailySummaryCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      // Use a slightly different color from the scaffold for emphasis
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+      // FIX 1 & 2: Use the new surfaceContainerHighest and withAlpha properties.
+      color: theme.colorScheme.surfaceContainerHighest
+          .withAlpha(128), // approx 0.5 opacity
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -26,35 +27,31 @@ class DailySummaryCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             // A row for the main metrics
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildMetric(
-                  context,
+                _BuildMetric(
                   value: '1,850',
                   unit: 'kcal',
                   label: 'Calories',
                   icon: Icons.local_fire_department,
                   iconColor: Colors.orange,
                 ),
-                _buildMetric(
-                  context,
+                _BuildMetric(
                   value: '120',
                   unit: 'g',
                   label: 'Protein',
                   icon: Icons.egg,
                   iconColor: Colors.lightBlue,
                 ),
-                _buildMetric(
-                  context,
+                _BuildMetric(
                   value: '150',
                   unit: 'g',
                   label: 'Carbs',
                   icon: Icons.rice_bowl,
                   iconColor: Colors.amber,
                 ),
-                _buildMetric(
-                  context,
+                _BuildMetric(
                   value: '60',
                   unit: 'g',
                   label: 'Fat',
@@ -68,21 +65,33 @@ class DailySummaryCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  // Helper widget to build each metric item consistently
-  Widget _buildMetric(
-    BuildContext context, {
-    required String value,
-    required String unit,
-    required String label,
-    required IconData icon,
-    required Color iconColor,
-  }) {
+// Helper widget to build each metric item consistently
+// Converted to a private stateless widget for better practice and const correctness
+class _BuildMetric extends StatelessWidget {
+  final String value;
+  final String unit;
+  final String label;
+  final IconData icon;
+  final Color iconColor;
+
+  const _BuildMetric({
+    required this.value,
+    required this.unit,
+    required this.label,
+    required this.icon,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       children: [
         CircleAvatar(
-          backgroundColor: iconColor.withOpacity(0.2),
+          // FIX 3: Use withAlpha here as well.
+          backgroundColor: iconColor.withAlpha(51), // approx 0.2 opacity
           child: Icon(icon, color: iconColor),
         ),
         const SizedBox(height: 8),

@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:health_ai_app/src/features/dashboard/domain/meal_plan_models.dart';
 
-// We convert this to a StatefulWidget to manage its own expand/collapse state.
 class MealItemCard extends StatefulWidget {
   final Meal meal;
   final bool isEaten;
@@ -21,28 +20,29 @@ class MealItemCard extends StatefulWidget {
 }
 
 class _MealItemCardState extends State<MealItemCard> {
-  // State variable to track if the card is expanded.
   bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isEaten = widget.isEaten; // Access properties via widget.
+    final isEaten = widget.isEaten;
+    // FIX: Use withAlpha
     final contentColor = isEaten
-        ? theme.colorScheme.onSurface.withOpacity(0.5)
+        ? theme.colorScheme.onSurface.withAlpha(128) // approx 0.5 opacity
         : theme.colorScheme.onSurface;
 
     return Card(
+      // FIX: Use surfaceContainerHighest and withAlpha
       color: isEaten
-          ? theme.colorScheme.surfaceVariant.withOpacity(0.2)
-          : theme.colorScheme.surfaceVariant.withOpacity(0.5),
+          ? theme.colorScheme.surfaceContainerHighest
+              .withAlpha(51) // approx 0.2 opacity
+          : theme.colorScheme.surfaceContainerHighest
+              .withAlpha(128), // approx 0.5 opacity
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      // We use clipBehavior to ensure the inner content respects the card's rounded corners.
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // This ListTile acts as the clickable header of the card.
           ListTile(
             onTap: () {
               setState(() {
@@ -62,49 +62,42 @@ class _MealItemCardState extends State<MealItemCard> {
             subtitle: Text(
               '${widget.meal.totalCalories} kcal • ${widget.meal.totalProtein}g Protein',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: contentColor.withOpacity(0.8),
+                // FIX: Use withAlpha
+                color: contentColor.withAlpha(204), // approx 0.8 opacity
                 decoration:
                     isEaten ? TextDecoration.lineThrough : TextDecoration.none,
               ),
             ),
-            // The trailing part contains the log button AND the expand icon.
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildLogButton(),
-                // An animated icon that rotates when the card is expanded.
                 AnimatedRotation(
-                  turns: _isExpanded ? 0.5 : 0, // 0.5 turns = 180 degrees
+                  turns: _isExpanded ? 0.5 : 0,
                   duration: const Duration(milliseconds: 200),
                   child: const Icon(Icons.expand_more),
                 ),
               ],
             ),
           ),
-          // This widget smoothly animates its size when its child's visibility changes.
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            child: Container(
-              // Only build the children list if the card is expanded.
-              child: _isExpanded
-                  ? Column(
-                      children: [
-                        const Divider(height: 1, indent: 16, endIndent: 16),
-                        ...widget.meal.items.map((foodItem) =>
-                            _buildFoodListItem(foodItem, context)),
-                      ],
-                    )
-                  : const SizedBox
-                      .shrink(), // Otherwise, build an empty, zero-sized box.
-            ),
+            child: _isExpanded
+                ? Column(
+                    children: [
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                      ...widget.meal.items.map(
+                          (foodItem) => _buildFoodListItem(foodItem, context)),
+                    ],
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),
     );
   }
 
-  // The button for logging a meal (no changes here)
   Widget _buildLogButton() {
     return TextButton(
       onPressed: widget.onLogMeal,
@@ -127,12 +120,12 @@ class _MealItemCardState extends State<MealItemCard> {
     );
   }
 
-  // A styled list item for each food within the meal (no changes here)
   Widget _buildFoodListItem(FoodItem foodItem, BuildContext context) {
     final theme = Theme.of(context);
     final isEaten = widget.isEaten;
+    // FIX: Use withAlpha
     final contentColor = isEaten
-        ? theme.colorScheme.onSurface.withOpacity(0.5)
+        ? theme.colorScheme.onSurface.withAlpha(128) // approx 0.5 opacity
         : theme.colorScheme.onSurface;
 
     return ListTile(
@@ -151,7 +144,8 @@ class _MealItemCardState extends State<MealItemCard> {
         style: TextStyle(
           decoration:
               isEaten ? TextDecoration.lineThrough : TextDecoration.none,
-          color: contentColor.withOpacity(0.8),
+          // FIX: Use withAlpha
+          color: contentColor.withAlpha(204), // approx 0.8 opacity
         ),
       ),
       trailing: Text(

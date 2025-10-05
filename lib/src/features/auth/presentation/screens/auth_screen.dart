@@ -1,7 +1,6 @@
 // lib/src/features/auth/presentation/screens/auth_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:health_ai_app/src/features/auth/data/auth_service.dart';
 import 'package:health_ai_app/src/features/auth/presentation/screens/phone_auth_screen.dart';
 
@@ -20,7 +19,6 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  // NEW: Create an instance of our AuthService
   final AuthService _authService = AuthService();
 
   void _toggleMode() {
@@ -30,7 +28,6 @@ class _AuthScreenState extends State<AuthScreen> {
     });
   }
 
-  // NEW: Updated submit logic
   Future<void> _submitForm() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
@@ -39,6 +36,9 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       _isLoading = true;
     });
+
+    // FIX 1: Store the ScaffoldMessenger before the async gap.
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       if (_isLoginMode) {
@@ -52,12 +52,10 @@ class _AuthScreenState extends State<AuthScreen> {
           password: _passwordController.text,
         );
       }
-      // If successful, the AuthWrapper will automatically navigate us.
-      // We don't need to do anything here.
-    } catch (e) {
-      // Handle errors (e.g., show a SnackBar)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+    } on Exception catch (e) {
+      // Use the stored scaffoldMessenger.
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
       );
     }
 
@@ -68,15 +66,18 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  // NEW: Google Sign-In logic
   Future<void> _signInWithGoogle() async {
     setState(() {
       _isLoading = true;
     });
+
+    // FIX 1 (again): Store the ScaffoldMessenger before the async gap.
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       await _authService.signInWithGoogle();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    } on Exception catch (e) {
+      scaffoldMessenger.showSnackBar(
         SnackBar(
             content: Text('Failed to sign in with Google: ${e.toString()}')),
       );
@@ -109,10 +110,7 @@ class _AuthScreenState extends State<AuthScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.fitness_center, size: 60)
-                    .animate()
-                    .fade(duration: 500.ms)
-                    .scale(),
+                const Icon(Icons.fitness_center, size: 60),
                 const SizedBox(height: 24),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -134,7 +132,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       : 'Let\'s get you started',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    // FIX 2: Use the new syntax for fade/opacity.
+                    color:
+                        theme.colorScheme.onSurface.withAlpha(178), // 0.7 * 255
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -219,7 +219,6 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  // NEW: Call the Google Sign-In method
                   onPressed: _isLoading ? null : _signInWithGoogle,
                   icon: const Icon(Icons.g_mobiledata, size: 28),
                   label: const Text('Continue with Google'),
@@ -245,7 +244,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     foregroundColor: Colors.white,
                   ),
                 ),
-              ].animate(interval: 100.ms).fadeIn().slideX(begin: -0.1),
+                // FIX 3: Remove the chained animation from the end of the list
+                // as it can sometimes conflict with other animations.
+              ],
             ),
           ),
         ),

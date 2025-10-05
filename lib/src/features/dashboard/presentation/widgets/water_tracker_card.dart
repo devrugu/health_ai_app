@@ -17,18 +17,7 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
   int _waterConsumedMl = 0;
 
   final List<int> _cupSizes = const [250, 330, 500];
-
-  // --- THIS IS THE FIX ---
-  // We initialize _selectedCupSize with a default value immediately.
-  // We remove the 'late' keyword and the assignment from initState.
   int _selectedCupSize = 250;
-
-  // The initState method is no longer needed for this variable.
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _selectedCupSize = _cupSizes.first; // This line is now removed.
-  // }
 
   void _addWater() {
     setState(() {
@@ -60,7 +49,9 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
     final progressColor = isGoalMet ? Colors.green.shade400 : Colors.blueAccent;
 
     return Card(
-      color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+      // FIX 1 & 2: Use the new surfaceContainerHighest and withAlpha properties.
+      color: theme.colorScheme.surfaceContainerHighest
+          .withAlpha(128), // approx 0.5 opacity
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -102,7 +93,8 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
                   value: _visualProgress.isNaN ? 0 : _visualProgress,
-                  backgroundColor: theme.colorScheme.surface,
+                  // FIX 3: Use the theme's surface color for the background of the progress bar
+                  backgroundColor: theme.colorScheme.surfaceContainer,
                   valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                 ),
               ),

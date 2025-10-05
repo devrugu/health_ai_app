@@ -1,20 +1,16 @@
 // lib/src/features/auth/data/auth_service.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
-  // Get instances of the Firebase Auth and Google Sign-In services
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
-  // Stream to listen to authentication state changes
-  // This is the most important part for our AuthWrapper.
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   // --- EMAIL & PASSWORD ---
-
-  // Sign up with email and password
   Future<UserCredential?> createUserWithEmailAndPassword({
     required String email,
     required String password,
@@ -25,13 +21,13 @@ class AuthService {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      // Handle specific errors like 'email-already-in-use'
-      print('Firebase Auth Exception: ${e.message}');
+      if (kDebugMode) {
+        print('Firebase Auth Exception: ${e.message}');
+      }
       return null;
     }
   }
 
-  // Sign in with email and password
   Future<UserCredential?> signInWithEmailAndPassword({
     required String email,
     required String password,
@@ -42,8 +38,9 @@ class AuthService {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      // Handle errors like 'user-not-found' or 'wrong-password'
-      print('Firebase Auth Exception: ${e.message}');
+      if (kDebugMode) {
+        print('Firebase Auth Exception: ${e.message}');
+      }
       return null;
     }
   }
@@ -51,34 +48,35 @@ class AuthService {
   // --- GOOGLE SIGN-IN ---
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // Trigger the Google Sign-In flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        // The user canceled the sign-in
-        return null;
-      }
+      // The authenticate() method throws an exception if the user cancels.
+      // The result is non-nullable.
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
-      // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      // Create a new credential for Firebase
+      // --- THIS IS THE FIX ---
+      // We no longer need or have access to the accessToken.
+      // The idToken is sufficient for Firebase to create the credential.
       final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Once signed in, return the UserCredential
       return await _firebaseAuth.signInWithCredential(credential);
     } on FirebaseAuthException catch (e) {
-      print('Firebase Auth Exception during Google Sign-In: ${e.message}');
+      if (kDebugMode) {
+        print('Firebase Auth Exception during Google Sign-In: ${e.message}');
+      }
+      return null;
+    } on GoogleSignInException catch (e) {
+      // This will catch the cancellation exception.
+      if (kDebugMode) {
+        print('Google Sign-In Exception: ${e.code}');
+      }
       return null;
     }
   }
 
   // --- PHONE SIGN-IN ---
-
-  // Step 1: Send OTP to the user's phone
   Future<void> verifyPhoneNumber({
     required String phoneNumber,
     required void Function(PhoneAuthCredential) verificationCompleted,
@@ -95,14 +93,10 @@ class AuthService {
     );
   }
 
-  // Step 2: Sign in with the OTP
   Future<UserCredential> signInWithOtp({
     required String verificationId,
     required String smsCode,
   }) async {
-    // The try...catch block is removed. The method will now throw
-    // a FirebaseAuthException directly if the sign-in fails, which is
-    // what we want the UI to be able to catch.
     final AuthCredential credential = PhoneAuthProvider.credential(
       verificationId: verificationId,
       smsCode: smsCode,
@@ -112,8 +106,7 @@ class AuthService {
 
   // --- SIGN OUT ---
   Future<void> signOut() async {
-    // We need to sign out of both Google and Firebase
-    await _googleSignIn.signOut();
+    await GoogleSignIn.instance.signOut();
     await _firebaseAuth.signOut();
   }
 }

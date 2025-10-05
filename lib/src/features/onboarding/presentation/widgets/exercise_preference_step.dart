@@ -34,7 +34,7 @@ class ExercisePreferenceStep extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withAlpha(178),
               )).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1, end: 0),
           const SizedBox(height: 48),
           ...ExercisePreference.values.asMap().entries.map((entry) {

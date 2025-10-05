@@ -3,7 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:health_ai_app/src/features/auth/data/auth_service.dart';
-import 'package:pinput/pinput.dart'; // Import the new package
+import 'package:pinput/pinput.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String verificationId;
@@ -17,17 +17,18 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   final _otpController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
-  // NEW: State to track if the first auto-verification attempt failed
   bool _verificationFailed = false;
 
-  // This function is now called automatically on completion, or manually by the button
   Future<void> _verifyOtp(String pin) async {
-    // Ensure we don't try to verify an incomplete pin
     if (pin.length < 6) return;
 
     setState(() {
       _isLoading = true;
     });
+
+    // Store the context before the async gap.
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
     try {
       await _authService.signInWithOtp(
@@ -35,20 +36,15 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         smsCode: pin,
       );
       if (mounted) {
-        // Pop until we are back at the AuthWrapper, clearing the auth flow.
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        navigator.popUntil((route) => route.isFirst);
       }
-    }
-    // --- THIS IS THE FIX ---
-    // We now specifically catch the FirebaseAuthException.
-    on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _verificationFailed = true; // Show the manual submit button
+          _verificationFailed = true;
         });
-        // Display a user-friendly message from the exception.
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
               content:
                   Text(e.message ?? 'Verification failed. Please try again.')),
@@ -67,13 +63,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Define the style for the PIN boxes
+    // FIX 1 & 2: Use the new surfaceContainerHighest and withAlpha properties.
     final defaultPinTheme = PinTheme(
       width: 56,
       height: 60,
       textStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+        color: theme.colorScheme.surfaceContainerHighest
+            .withAlpha(128), // approx 0.5 opacity
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.transparent),
       ),
@@ -92,7 +89,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            // The Pinput widget
             Pinput(
               length: 6,
               controller: _otpController,
@@ -103,11 +99,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   border: Border.all(color: theme.colorScheme.primary),
                 ),
               ),
-              // NEW: Automatically submit when all 6 digits are entered
               onCompleted: (pin) => _verifyOtp(pin),
             ),
             const SizedBox(height: 32),
-            // This button will only appear if the initial verification fails
             AnimatedOpacity(
               opacity: _verificationFailed ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 300),
@@ -120,9 +114,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                           ? const CircularProgressIndicator()
                           : const Text('Verify & Sign In'),
                     )
-                  : const SizedBox.shrink(), // Takes no space when hidden
+                  : const SizedBox.shrink(),
             ),
-            // Show a loading indicator in the center while auto-verifying
             if (_isLoading && !_verificationFailed)
               const Center(child: CircularProgressIndicator()),
           ],
