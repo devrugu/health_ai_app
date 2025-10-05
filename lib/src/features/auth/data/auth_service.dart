@@ -97,22 +97,17 @@ class AuthService {
 
   // Step 2: Sign in with the OTP
   Future<UserCredential> signInWithOtp({
-    // Return type is now non-nullable
     required String verificationId,
     required String smsCode,
   }) async {
-    try {
-      final AuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: smsCode,
-      );
-      // If successful, this will return the credential
-      return await _firebaseAuth.signInWithCredential(credential);
-    } on FirebaseAuthException catch (e) {
-      // Re-throw the exception to be caught by the UI layer
-      // This is crucial for our new UX logic.
-      throw Exception(e.message);
-    }
+    // The try...catch block is removed. The method will now throw
+    // a FirebaseAuthException directly if the sign-in fails, which is
+    // what we want the UI to be able to catch.
+    final AuthCredential credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    return await _firebaseAuth.signInWithCredential(credential);
   }
 
   // --- SIGN OUT ---
