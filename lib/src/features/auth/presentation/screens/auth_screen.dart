@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:health_ai_app/src/features/auth/data/auth_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -12,22 +13,77 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool _isLoginMode = true;
+  bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  // NEW: Create an instance of our AuthService
+  final AuthService _authService = AuthService();
 
   void _toggleMode() {
     setState(() {
       _isLoginMode = !_isLoginMode;
+      _formKey.currentState?.reset();
     });
   }
 
-  void _submitForm() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final email = _emailController.text;
-      final password = _passwordController.text;
-      print(
-          'Form is valid. Email: $email, Password: $password, Mode: ${_isLoginMode ? 'Login' : 'Register'}');
+  // NEW: Updated submit logic
+  Future<void> _submitForm() async {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      if (_isLoginMode) {
+        await _authService.signInWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+      } else {
+        await _authService.createUserWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+      }
+      // If successful, the AuthWrapper will automatically navigate us.
+      // We don't need to do anything here.
+    } catch (e) {
+      // Handle errors (e.g., show a SnackBar)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // NEW: Google Sign-In logic
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await _authService.signInWithGoogle();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Failed to sign in with Google: ${e.toString()}')),
+      );
+    }
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -35,6 +91,7 @@ class _AuthScreenState extends State<AuthScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -45,28 +102,30 @@ class _AuthScreenState extends State<AuthScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
-          // --- THIS IS THE FIX ---
-          // The Form widget directly contains the Column.
-          // The incorrect mainAxisAlignment and crossAxisAlignment properties have been removed.
           child: Form(
             key: _formKey,
             child: Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center, // This is the correct placement
-              crossAxisAlignment:
-                  CrossAxisAlignment.stretch, // This is the correct placement
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Icon(Icons.fitness_center, size: 60)
                     .animate()
                     .fade(duration: 500.ms)
                     .scale(),
                 const SizedBox(height: 24),
-                Text(
-                  _isLoginMode ? 'Welcome Back' : 'Create Account',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ).animate().fade(delay: 200.ms),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  child: Text(
+                    _isLoginMode ? 'Welcome Back' : 'Create Account',
+                    key: ValueKey(_isLoginMode),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   _isLoginMode
@@ -76,7 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.7),
                   ),
-                ).animate().fade(delay: 300.ms),
+                ),
                 const SizedBox(height: 40),
                 TextFormField(
                   controller: _emailController,
@@ -88,7 +147,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     }
                     return null;
                   },
-                ).animate().fadeIn(delay: 500.ms).slideX(begin: -0.2),
+                ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
@@ -100,22 +159,85 @@ class _AuthScreenState extends State<AuthScreen> {
                     }
                     return null;
                   },
-                ).animate().fadeIn(delay: 600.ms).slideX(begin: -0.2),
+                ),
+                const SizedBox(height: 16),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) {
+                    return SizeTransition(sizeFactor: animation, child: child);
+                  },
+                  child: !_isLoginMode
+                      ? TextFormField(
+                          controller: _confirmPasswordController,
+                          decoration: const InputDecoration(
+                              labelText: 'Confirm Password'),
+                          obscureText: true,
+                          validator: (value) {
+                            if (value != _passwordController.text) {
+                              return 'Passwords do not match.';
+                            }
+                            return null;
+                          },
+                        )
+                      : const SizedBox.shrink(),
+                ),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: _submitForm,
-                  child: Text(_isLoginMode ? 'Login' : 'Sign Up'),
-                ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.2, end: 0),
+                  onPressed: _isLoading ? null : _submitForm,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        )
+                      : Text(_isLoginMode ? 'Login' : 'Sign Up'),
+                ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: _toggleMode,
+                  onPressed: _isLoading ? null : _toggleMode,
                   child: Text(
                     _isLoginMode
                         ? 'Don\'t have an account? Sign Up'
                         : 'Already have an account? Login',
                   ),
                 ),
-              ],
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        'OR',
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: Colors.grey),
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  // NEW: Call the Google Sign-In method
+                  onPressed: _isLoading ? null : _signInWithGoogle,
+                  icon: const Icon(Icons.g_mobiledata, size: 28),
+                  label: const Text('Continue with Google'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: _isLoading ? null : () {},
+                  icon: const Icon(Icons.phone),
+                  label: const Text('Continue with Phone'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ].animate(interval: 100.ms).fadeIn().slideX(begin: -0.1),
             ),
           ),
         ),

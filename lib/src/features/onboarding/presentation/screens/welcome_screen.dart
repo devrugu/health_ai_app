@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/screens/onboarding_details_screen.dart';
+import 'package:health_ai_app/src/features/auth/data/auth_service.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -71,6 +72,10 @@ class WelcomeScreen extends StatelessWidget {
                   .fadeIn(delay: 900.ms, duration: 400.ms)
                   .slideY(begin: 0.3, end: 0),
               const SizedBox(height: 20),
+              TextButton(
+                onPressed: () => AuthService().signOut(),
+                child: const Text('Sign Out'),
+              ),
             ],
           ),
         ),
