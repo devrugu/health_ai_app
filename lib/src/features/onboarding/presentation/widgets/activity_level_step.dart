@@ -35,7 +35,7 @@ class ActivityLevelStep extends StatelessWidget {
               // --- CORRECTED ---
               style: TextStyle(
                 fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(178),
               )).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1, end: 0),
           const SizedBox(height: 48),
           ...ActivityLevel.values.asMap().entries.map((entry) {

@@ -1,5 +1,6 @@
 // lib/src/features/workout/presentation/screens/log_workout_screen.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
@@ -34,8 +35,10 @@ class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
         durationInMinutes: _durationInMinutes.round(),
         intensity: _selectedIntensity,
       );
-      print(
-          'Workout Logged: Type=${log.type}, Duration=${log.durationInMinutes}min, Intensity=${log.intensity}');
+      if (kDebugMode) {
+        print(
+            'Workout Logged: Type=${log.type}, Duration=${log.durationInMinutes}min, Intensity=${log.intensity}');
+      }
       Navigator.of(context).pop();
     }
   }

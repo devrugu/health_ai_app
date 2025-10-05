@@ -30,13 +30,18 @@ class GoalSelectionStep extends StatelessWidget {
               .slideX(begin: -0.1, end: 0),
           const SizedBox(height: 8),
           Text(
-              'We will create a personalized plan to help you achieve it.', // <-- Not a const
-              textAlign: TextAlign.center,
-              // --- CORRECTED ---
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-              )).animate().fadeIn(delay: 300.ms).slideX(begin: -0.1, end: 0),
+                  'We will create a personalized plan to help you achieve it.', // <-- Not a const
+                  textAlign: TextAlign.center,
+                  // --- CORRECTED ---
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withAlpha(178)))
+              .animate()
+              .fadeIn(delay: 300.ms)
+              .slideX(begin: -0.1, end: 0),
           const SizedBox(height: 48),
           ...Goal.values.asMap().entries.map((entry) {
             final index = entry.key;
