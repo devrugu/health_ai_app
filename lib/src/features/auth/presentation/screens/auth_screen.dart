@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:health_ai_app/src/features/auth/data/auth_service.dart';
+import 'package:health_ai_app/src/features/auth/presentation/screens/phone_auth_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -229,7 +230,14 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: _isLoading ? null : () {},
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (context) => const PhoneAuthScreen()),
+                          );
+                        },
                   icon: const Icon(Icons.phone),
                   label: const Text('Continue with Phone'),
                   style: ElevatedButton.styleFrom(
