@@ -59,4 +59,5 @@ class DefaultFirebaseOptions {
     projectId: 'health-ai-app-8206e',
     storageBucket: 'health-ai-app-8206e.firebasestorage.app',
   );
+
 }
