@@ -1,5 +1,6 @@
 // lib/src/features/auth/presentation/screens/otp_verification_screen.dart
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:health_ai_app/src/features/auth/data/auth_service.dart';
 import 'package:pinput/pinput.dart'; // Import the new package
@@ -21,6 +22,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   // This function is now called automatically on completion, or manually by the button
   Future<void> _verifyOtp(String pin) async {
+    // Ensure we don't try to verify an incomplete pin
+    if (pin.length < 6) return;
+
     setState(() {
       _isLoading = true;
     });
@@ -30,20 +34,24 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         verificationId: widget.verificationId,
         smsCode: pin,
       );
-      // If successful, the AuthWrapper handles navigation. We just pop the auth flow screens.
       if (mounted) {
-        // Pop twice to remove both the OTP screen and the phone number entry screen
+        // Pop until we are back at the AuthWrapper, clearing the auth flow.
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
-    } catch (e) {
+    }
+    // --- THIS IS THE FIX ---
+    // We now specifically catch the FirebaseAuthException.
+    on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          // NEW: If it fails, we show the manual submit button
-          _verificationFailed = true;
+          _verificationFailed = true; // Show the manual submit button
         });
+        // Display a user-friendly message from the exception.
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification failed: Incorrect code.')),
+          SnackBar(
+              content:
+                  Text(e.message ?? 'Verification failed. Please try again.')),
         );
       }
     }
