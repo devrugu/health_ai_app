@@ -3,7 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:health_ai_app/src/features/database/data/database_service.dart';
-import 'package:health_ai_app/src/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:health_ai_app/src/features/dashboard/presentation/screens/main_app_screen.dart';
 import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/activity_level_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/exercise_preference_step.dart';
@@ -124,7 +124,7 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
 
         // If successful, navigate to the dashboard
         navigator.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          MaterialPageRoute(builder: (context) => const MainAppScreen()),
           (Route<dynamic> route) => false,
         );
       } catch (e) {

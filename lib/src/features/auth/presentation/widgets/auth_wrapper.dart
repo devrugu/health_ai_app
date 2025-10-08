@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:health_ai_app/src/features/auth/data/auth_service.dart';
 import 'package:health_ai_app/src/features/auth/presentation/screens/auth_screen.dart';
-import 'package:health_ai_app/src/features/database/data/database_service.dart'; // NEW: Import DatabaseService
-import 'package:health_ai_app/src/features/dashboard/presentation/screens/dashboard_screen.dart'; // NEW: Import DashboardScreen
+import 'package:health_ai_app/src/features/database/data/database_service.dart';
+import 'package:health_ai_app/src/features/dashboard/presentation/screens/main_app_screen.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/screens/welcome_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -35,9 +35,9 @@ class AuthWrapper extends StatelessWidget {
                     body: Center(child: CircularProgressIndicator()));
               }
 
-              // If the profile exists, go directly to the Dashboard
+              // If the profile exists, go directly to the MainAppScreen
               if (profileSnapshot.data == true) {
-                return const DashboardScreen();
+                return const MainAppScreen();
               }
 
               // Otherwise, the user needs to complete onboarding
