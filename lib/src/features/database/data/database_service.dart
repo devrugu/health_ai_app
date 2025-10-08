@@ -56,4 +56,18 @@ class DatabaseService {
       throw Exception('Could not create user profile.');
     }
   }
+
+  Future<bool> doesProfileExist(String uid) async {
+    try {
+      final userDocRef = _db.collection('users').doc(uid);
+      final docSnapshot = await userDocRef.get();
+      return docSnapshot.exists;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking for profile: $e');
+      }
+      // In case of error, we assume profile doesn't exist to be safe.
+      return false;
+    }
+  }
 }
