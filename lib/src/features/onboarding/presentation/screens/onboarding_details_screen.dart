@@ -1,7 +1,8 @@
 // lib/src/features/onboarding/presentation/screens/onboarding_details_screen.dart
 
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:health_ai_app/src/features/database/data/database_service.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/activity_level_step.dart';
@@ -34,6 +35,7 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
   // This guarantees they exist before the build method is ever called.
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+  bool _isLoading = false;
 
   // We can keep this for the page count.
   final List<Widget> _onboardingSteps = [
@@ -79,22 +81,60 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
 
   // No changes to _handleNext, _handleBack, or _isCurrentPageValid
 
-  void _handleNext() {
-    if (_isCurrentPageValid()) {
-      if (_currentPageIndex < _onboardingSteps.length - 1) {
-        _pageController.nextPage(
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeOutQuad,
+  void _handleNext() async {
+    // Make the method async
+    if (!_isCurrentPageValid()) return;
+
+    if (_currentPageIndex < _onboardingSteps.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutQuad,
+      );
+    } else {
+      // This is the Finish button logic
+      setState(() {
+        _isLoading = true;
+      });
+
+      final navigator = Navigator.of(context);
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+      // Get the current authenticated user
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        // This should not happen if they got here, but it's a good safety check
+        scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text('Error: Not logged in.')));
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      try {
+        // Call the database service to save the data
+        await DatabaseService().createUserProfile(
+          user: user,
+          height: _height!,
+          weight: _weight!,
+          activityLevel: _activityLevel!,
+          goal: _goal!,
+          exercisePreference: _exercisePreference!,
         );
-      } else {
-        if (kDebugMode) {
-          print(
-              'Onboarding complete! Data: Height: $_height, Weight: $_weight, Activity: $_activityLevel, Goal: $_goal, Exercise: $_exercisePreference');
-        }
-        Navigator.of(context).pushAndRemoveUntil(
+
+        // If successful, navigate to the dashboard
+        navigator.pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const DashboardScreen()),
           (Route<dynamic> route) => false,
         );
+      } catch (e) {
+        // Show an error message if saving fails
+        scaffoldMessenger.showSnackBar(SnackBar(content: Text(e.toString())));
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -189,8 +229,11 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.all(24.0).copyWith(bottom: 48),
           child: ElevatedButton(
-            onPressed: isPageValid ? _handleNext : null,
-            child: Text(isLastPage ? 'Finish' : 'Next'),
+            onPressed: (isPageValid && !_isLoading) ? _handleNext : null,
+            child: _isLoading && isLastPage
+                ? const SizedBox(
+                    height: 24, width: 24, child: CircularProgressIndicator())
+                : Text(isLastPage ? 'Finish' : 'Next'),
           ),
         ),
       ),
