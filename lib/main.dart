@@ -5,12 +5,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:health_ai_app/src/features/auth/presentation/widgets/auth_wrapper.dart';
 import 'firebase_options.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // NEW: The main function is now 'async'
 Future<void> main() async {
-  // NEW: Ensures that the Flutter app is properly initialized before running
   WidgetsFlutterBinding.ensureInitialized();
-  // NEW: Initializes Firebase with the platform-specific options
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
