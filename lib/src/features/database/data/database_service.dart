@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
+import 'package:health_ai_app/src/features/database/domain/user_profile.dart';
 
 class DatabaseService {
   // Get an instance of the Firestore database
@@ -68,6 +69,24 @@ class DatabaseService {
       }
       // In case of error, we assume profile doesn't exist to be safe.
       return false;
+    }
+  }
+
+  /// Fetches a user's profile from Firestore and returns it as a UserProfile object.
+  Future<UserProfile?> getUserProfile(String uid) async {
+    try {
+      final userDocRef = _db.collection('users').doc(uid);
+      final docSnapshot = await userDocRef.get();
+      if (docSnapshot.exists) {
+        // If the document exists, convert it to a UserProfile object
+        return UserProfile.fromFirestore(docSnapshot.data()!);
+      } else {
+        // If the document doesn't exist, return null
+        return null;
+      }
+    } catch (e) {
+      print('Error getting user profile: $e');
+      return null;
     }
   }
 }
