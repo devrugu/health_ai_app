@@ -3,16 +3,25 @@
 import 'package:flutter/material.dart';
 
 class DailySummaryCard extends StatelessWidget {
-  const DailySummaryCard({super.key});
+  final int calorieTarget;
+  final int proteinTarget;
+  final int carbsTarget;
+  final int fatTarget;
+
+  const DailySummaryCard({
+    super.key,
+    required this.calorieTarget,
+    required this.proteinTarget,
+    required this.carbsTarget,
+    required this.fatTarget,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
-      // FIX 1 & 2: Use the new surfaceContainerHighest and withAlpha properties.
-      color: theme.colorScheme.surfaceContainerHighest
-          .withAlpha(128), // approx 0.5 opacity
+      color: theme.colorScheme.surfaceContainerHighest.withAlpha(128),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -26,36 +35,36 @@ class DailySummaryCard extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            // A row for the main metrics
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // UPDATED: Use the new parameters
                 _BuildMetric(
-                  value: '1,850',
+                  value: calorieTarget.toString(),
                   unit: 'kcal',
                   label: 'Calories',
                   icon: Icons.local_fire_department,
                   iconColor: Colors.orange,
                 ),
                 _BuildMetric(
-                  value: '120',
+                  value: proteinTarget.toString(),
                   unit: 'g',
                   label: 'Protein',
-                  icon: Icons.egg,
+                  icon: Icons.egg_rounded,
                   iconColor: Colors.lightBlue,
                 ),
                 _BuildMetric(
-                  value: '150',
+                  value: carbsTarget.toString(),
                   unit: 'g',
                   label: 'Carbs',
-                  icon: Icons.rice_bowl,
+                  icon: Icons.rice_bowl_rounded,
                   iconColor: Colors.amber,
                 ),
                 _BuildMetric(
-                  value: '60',
+                  value: fatTarget.toString(),
                   unit: 'g',
                   label: 'Fat',
-                  icon: Icons.water_drop, // Placeholder icon
+                  icon: Icons.water_drop_rounded,
                   iconColor: Colors.greenAccent,
                 ),
               ],
@@ -67,8 +76,6 @@ class DailySummaryCard extends StatelessWidget {
   }
 }
 
-// Helper widget to build each metric item consistently
-// Converted to a private stateless widget for better practice and const correctness
 class _BuildMetric extends StatelessWidget {
   final String value;
   final String unit;
@@ -90,8 +97,7 @@ class _BuildMetric extends StatelessWidget {
     return Column(
       children: [
         CircleAvatar(
-          // FIX 3: Use withAlpha here as well.
-          backgroundColor: iconColor.withAlpha(51), // approx 0.2 opacity
+          backgroundColor: iconColor.withAlpha(51),
           child: Icon(icon, color: iconColor),
         ),
         const SizedBox(height: 8),

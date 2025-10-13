@@ -6,16 +6,18 @@ import 'package:health_ai_app/src/features/dashboard/presentation/widgets/cup_si
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_log_controls.dart';
 
 class WaterTrackerCard extends StatefulWidget {
-  const WaterTrackerCard({super.key});
+  // NEW: Add a parameter for the goal
+  final int waterGoalMl;
+
+  const WaterTrackerCard({super.key, required this.waterGoalMl});
 
   @override
   State<WaterTrackerCard> createState() => _WaterTrackerCardState();
 }
 
 class _WaterTrackerCardState extends State<WaterTrackerCard> {
-  final int _waterGoalMl = 2500;
+  // REMOVED: The hardcoded goal is gone
   int _waterConsumedMl = 0;
-
   final List<int> _cupSizes = const [250, 330, 500];
   int _selectedCupSize = 250;
 
@@ -36,22 +38,22 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
       _selectedCupSize = newSize;
     });
   }
-
-  double get _visualProgress => min(1.0, _waterConsumedMl / _waterGoalMl);
-  double get _actualProgress => _waterConsumedMl / _waterGoalMl;
+  
+  // UPDATED: Use the widget's waterGoalMl parameter
+  double get _visualProgress => min(1.0, _waterConsumedMl / widget.waterGoalMl);
+  double get _actualProgress => _waterConsumedMl / widget.waterGoalMl;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final goalInLiters = (_waterGoalMl / 1000).toStringAsFixed(1);
-
-    final isGoalMet = _waterConsumedMl >= _waterGoalMl;
+    // UPDATED: Use the widget's waterGoalMl parameter
+    final goalInLiters = (widget.waterGoalMl / 1000).toStringAsFixed(1);
+    
+    final isGoalMet = _waterConsumedMl >= widget.waterGoalMl;
     final progressColor = isGoalMet ? Colors.green.shade400 : Colors.blueAccent;
 
     return Card(
-      // FIX 1 & 2: Use the new surfaceContainerHighest and withAlpha properties.
-      color: theme.colorScheme.surfaceContainerHighest
-          .withAlpha(128), // approx 0.5 opacity
+      color: theme.colorScheme.surfaceContainerHighest.withAlpha(128),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -93,7 +95,6 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
                   value: _visualProgress.isNaN ? 0 : _visualProgress,
-                  // FIX 3: Use the theme's surface color for the background of the progress bar
                   backgroundColor: theme.colorScheme.surfaceContainer,
                   valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                 ),
@@ -108,7 +109,8 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
             const SizedBox(height: 12),
             WaterLogControls(
               waterConsumedMl: _waterConsumedMl,
-              waterGoalMl: _waterGoalMl,
+              // UPDATED: Use the widget's waterGoalMl parameter
+              waterGoalMl: widget.waterGoalMl,
               onAdd: _addWater,
               onRemove: _removeWater,
             ),

@@ -5,21 +5,20 @@ import 'package:health_ai_app/src/features/dashboard/domain/meal_plan_models.dar
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/meal_item_card.dart';
 
 class MealPlanCard extends StatefulWidget {
-  const MealPlanCard({super.key});
+  // NEW: Add a parameter for the meal plan
+  final List<Meal> meals;
+
+  const MealPlanCard({super.key, required this.meals});
 
   @override
   State<MealPlanCard> createState() => _MealPlanCardState();
 }
 
 class _MealPlanCardState extends State<MealPlanCard> {
-  late final List<Meal> _meals;
+  // REMOVED: The hardcoded list of meals is gone.
   final Set<String> _eatenMeals = {};
 
-  @override
-  void initState() {
-    super.initState();
-    _meals = _getSampleMeals();
-  }
+  // REMOVED: initState is no longer needed to create sample data.
 
   void _toggleMealEaten(String mealName) {
     setState(() {
@@ -33,24 +32,22 @@ class _MealPlanCardState extends State<MealPlanCard> {
 
   @override
   Widget build(BuildContext context) {
+    // If for some reason the meal plan is empty, show a message.
+    if (widget.meals.isEmpty) {
+      return const Center(child: Text('No meal plan available for today.'));
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Today's Meals",
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-
-        // --- THIS IS THE FIX ---
-        // We replace the problematic ListView.builder with a Column.
-        // The '.map()' function iterates through our meals and creates a list of widgets.
-        // The spread operator '...' inserts these widgets individually into the Column's children.
         Column(
-          children: _meals.map((meal) {
+          // UPDATED: Use widget.meals to generate the list of cards
+          children: widget.meals.map((meal) {
             final isEaten = _eatenMeals.contains(meal.name);
             return Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
@@ -64,59 +61,5 @@ class _MealPlanCardState extends State<MealPlanCard> {
         ),
       ],
     );
-  }
-
-  // --- SAMPLE DATA (No changes here) ---
-  List<Meal> _getSampleMeals() {
-    return [
-      Meal(
-        name: 'Breakfast',
-        icon: Icons.free_breakfast_rounded,
-        items: [
-          FoodItem(
-              name: 'Oatmeal', quantity: '1 cup', calories: 300, protein: 10),
-          FoodItem(
-              name: 'Blueberries',
-              quantity: '1/2 cup',
-              calories: 40,
-              protein: 1),
-          FoodItem(
-              name: 'Almonds', quantity: '1/4 cup', calories: 200, protein: 8),
-        ],
-      ),
-      Meal(
-        name: 'Lunch',
-        icon: Icons.lunch_dining_rounded,
-        items: [
-          FoodItem(
-              name: 'Grilled Chicken Breast',
-              quantity: '150g',
-              calories: 250,
-              protein: 45),
-          FoodItem(
-              name: 'Quinoa', quantity: '1 cup', calories: 220, protein: 8),
-          FoodItem(
-              name: 'Broccoli', quantity: '1 cup', calories: 55, protein: 4),
-        ],
-      ),
-      Meal(
-        name: 'Dinner',
-        icon: Icons.dinner_dining_rounded,
-        items: [
-          FoodItem(
-              name: 'Salmon Fillet',
-              quantity: '150g',
-              calories: 300,
-              protein: 40),
-          FoodItem(
-              name: 'Sweet Potato',
-              quantity: '1 medium',
-              calories: 180,
-              protein: 4),
-          FoodItem(
-              name: 'Asparagus', quantity: '1 cup', calories: 40, protein: 4),
-        ],
-      ),
-    ];
   }
 }
