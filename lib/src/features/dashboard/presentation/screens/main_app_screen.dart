@@ -1,10 +1,9 @@
 // lib/src/features/dashboard/presentation/screens/main_app_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:health_ai_app/src/features/dashboard/presentation/screens/today_tab.dart'; // We will create this
-import 'package:health_ai_app/src/features/profile/presentation/screens/profile_tab.dart'; // We will create this
+import 'package:health_ai_app/src/features/dashboard/presentation/screens/today_tab.dart';
+import 'package:health_ai_app/src/features/profile/presentation/screens/profile_tab.dart';
 
-// We've renamed DashboardScreen to MainAppScreen to better reflect its purpose.
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({super.key});
 
@@ -13,15 +12,26 @@ class MainAppScreen extends StatefulWidget {
 }
 
 class _MainAppScreenState extends State<MainAppScreen> {
-  // State to keep track of the selected tab index
   int _selectedIndex = 0;
 
-  // A list of the widgets (tabs) to be displayed
-  static const List<Widget> _widgetOptions = <Widget>[
-    TodayTab(), // Our current dashboard
-    Text('Plan Tab (Coming Soon)'), // Placeholder for the second tab
-    ProfileTab(), // The new profile screen
-  ];
+  // NEW: The visibility state now lives here, in the persistent parent state.
+  bool _isWelcomeMessageVisible = true;
+
+  // NEW: A callback function to allow the child (TodayTab) to change the state here.
+  void _dismissWelcomeMessage() {
+    setState(() {
+      _isWelcomeMessageVisible = false;
+    });
+  }
+
+  // UPDATED: The list of widgets can no longer be static const because it now
+  // needs to pass the instance variables (_isWelcomeMessageVisible) and
+  // instance methods (_dismissWelcomeMessage) down to the TodayTab.
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -33,9 +43,16 @@ class _MainAppScreenState extends State<MainAppScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+        // Rebuild the widget list if the index changes to pass the most recent state
+        child: <Widget>[
+          TodayTab(
+            isWelcomeMessageVisible: _isWelcomeMessageVisible,
+            onDismissWelcomeMessage: _dismissWelcomeMessage,
+          ),
+          const Center(child: Text('Plan Tab (Coming Soon)')),
+          const ProfileTab(),
+        ].elementAt(_selectedIndex),
       ),
-      // The BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(

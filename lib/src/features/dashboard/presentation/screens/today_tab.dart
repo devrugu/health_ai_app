@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:health_ai_app/src/features/database/data/database_service.dart';
-import 'package:health_ai_app/src/features/database/domain/daily_log.dart'; // Import DailyLog
+import 'package:health_ai_app/src/features/database/domain/daily_log.dart';
 import 'package:health_ai_app/src/features/database/domain/user_profile.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/daily_summary_card.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/log_workout_card.dart';
@@ -12,7 +12,15 @@ import 'package:health_ai_app/src/features/dashboard/presentation/widgets/meal_p
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_tracker_card.dart';
 
 class TodayTab extends StatefulWidget {
-  const TodayTab({super.key});
+  // NEW: It now accepts the visibility state and a callback from its parent.
+  final bool isWelcomeMessageVisible;
+  final VoidCallback onDismissWelcomeMessage;
+
+  const TodayTab({
+    super.key,
+    required this.isWelcomeMessageVisible,
+    required this.onDismissWelcomeMessage,
+  });
 
   @override
   State<TodayTab> createState() => _TodayTabState();
@@ -20,7 +28,6 @@ class TodayTab extends StatefulWidget {
 
 class _TodayTabState extends State<TodayTab> {
   UserProfile? _userProfile;
-  // NEW: State for today's log
   DailyLog? _dailyLog;
   bool _isLoading = true;
   final DatabaseService _dbService = DatabaseService();
@@ -31,19 +38,15 @@ class _TodayTabState extends State<TodayTab> {
     _fetchData();
   }
 
-  // UPDATED: Now fetches both profile and daily log
   Future<void> _fetchData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       if (mounted) setState(() => _isLoading = false);
       return;
     }
-    // Fetch both pieces of data in parallel for efficiency
     final profileFuture = _dbService.getUserProfile(user.uid);
     final logFuture = _dbService.getDailyLog();
-
     final results = await Future.wait([profileFuture, logFuture]);
-
     if (mounted) {
       setState(() {
         _userProfile = results[0] as UserProfile?;
@@ -86,8 +89,6 @@ class _TodayTabState extends State<TodayTab> {
     final String displayName = _userProfile!.displayName;
     final plan = _userProfile!.todaysPlan!;
     final welcomeMessage = plan.welcomeMessage;
-
-    // Get initial values from today's log, with safe defaults
     final initialWater = _dailyLog?.waterConsumedMl ?? 0;
     final initialMeals = _dailyLog?.mealsEaten ?? {};
 
@@ -101,7 +102,12 @@ class _TodayTabState extends State<TodayTab> {
           padding: const EdgeInsets.all(16.0),
           children: [
             if (welcomeMessage.isNotEmpty)
-              _WelcomeMessageCard(message: welcomeMessage),
+              _WelcomeMessageCard(
+                message: welcomeMessage,
+                // UPDATED: Pass the values from the parent widget down.
+                isVisible: widget.isWelcomeMessageVisible,
+                onDismiss: widget.onDismissWelcomeMessage,
+              ),
             Text(
               "Hello, $displayName!",
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -139,22 +145,16 @@ class _TodayTabState extends State<TodayTab> {
   }
 }
 
-class _WelcomeMessageCard extends StatefulWidget {
+class _WelcomeMessageCard extends StatelessWidget {
   final String message;
-  const _WelcomeMessageCard({required this.message});
+  final bool isVisible;
+  final VoidCallback onDismiss;
 
-  @override
-  State<_WelcomeMessageCard> createState() => _WelcomeMessageCardState();
-}
-
-class _WelcomeMessageCardState extends State<_WelcomeMessageCard> {
-  bool _isVisible = true;
-
-  void _dismiss() {
-    setState(() {
-      _isVisible = false;
-    });
-  }
+  const _WelcomeMessageCard({
+    required this.message,
+    required this.isVisible,
+    required this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +163,7 @@ class _WelcomeMessageCardState extends State<_WelcomeMessageCard> {
       transitionBuilder: (child, animation) {
         return SizeTransition(sizeFactor: animation, child: child);
       },
-      child: _isVisible
+      child: isVisible
           ? Card(
               color: Theme.of(context).colorScheme.tertiaryContainer,
               margin: const EdgeInsets.only(bottom: 24),
@@ -177,7 +177,7 @@ class _WelcomeMessageCardState extends State<_WelcomeMessageCard> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        widget.message,
+                        message,
                         style: TextStyle(
                             color: Theme.of(context)
                                 .colorScheme
@@ -186,7 +186,7 @@ class _WelcomeMessageCardState extends State<_WelcomeMessageCard> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: _dismiss,
+                      onPressed: onDismiss,
                       color: Theme.of(context).colorScheme.onTertiaryContainer,
                     )
                   ],
