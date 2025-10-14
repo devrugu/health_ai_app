@@ -1,19 +1,23 @@
 // lib/src/features/dashboard/presentation/widgets/log_workout_card.dart
 
 import 'package:flutter/material.dart';
-import 'package:health_ai_app/src/features/workout/presentation/screens/log_workout_screen.dart'; // Import the new screen
+import 'package:health_ai_app/src/features/workout/presentation/screens/log_workout_screen.dart';
 
 class LogWorkoutCard extends StatelessWidget {
-  const LogWorkoutCard({super.key});
+  // NEW: Add a field to accept the user's weight
+  final double userWeightKg;
+
+  const LogWorkoutCard({
+    super.key,
+    required this.userWeightKg,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
-      // FIX 1 & 2: Use the new surfaceContainerHighest and withAlpha properties.
-      color: theme.colorScheme.surfaceContainerHighest
-          .withAlpha(128), // approx 0.5 opacity
+      color: theme.colorScheme.surfaceContainerHighest.withAlpha(128),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -42,9 +46,7 @@ class LogWorkoutCard extends StatelessWidget {
                   Text(
                     "Log your workout to keep your plan accurate.",
                     style: theme.textTheme.bodySmall?.copyWith(
-                      // FIX 3: Use withAlpha here as well.
-                      color: theme.colorScheme.onSurface
-                          .withAlpha(178), // approx 0.7 opacity
+                      color: theme.colorScheme.onSurface.withAlpha(178),
                     ),
                   ),
                 ],
@@ -55,7 +57,9 @@ class LogWorkoutCard extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => const LogWorkoutScreen(),
+                    // UPDATED: Pass the userWeightKg to the LogWorkoutScreen
+                    builder: (context) =>
+                        LogWorkoutScreen(userWeightKg: userWeightKg),
                     fullscreenDialog: true,
                   ),
                 );

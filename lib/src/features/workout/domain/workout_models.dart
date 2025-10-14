@@ -1,30 +1,40 @@
 // lib/src/features/workout/domain/workout_models.dart
 
-import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
-
-enum WorkoutIntensity {
-  low,
-  medium,
-  high,
-}
+// We no longer need the old enums here.
 
 class WorkoutLog {
-  final ExercisePreference type;
+  final String exerciseName;
+  final String category;
+  final double metValue;
   final int durationInMinutes;
-  final WorkoutIntensity intensity;
+  final double caloriesBurned;
 
   WorkoutLog({
-    required this.type,
+    required this.exerciseName,
+    required this.category,
+    required this.metValue,
     required this.durationInMinutes,
-    required this.intensity,
+    required this.caloriesBurned,
   });
 
-  // NEW: A method to convert the object to a map for Firestore.
+  // Convert the object to a map for Firestore.
   Map<String, dynamic> toFirestore() {
     return {
-      'type': type.name, // Save enums as strings
+      'exerciseName': exerciseName,
+      'category': category,
+      'metValue': metValue,
       'durationInMinutes': durationInMinutes,
-      'intensity': intensity.name,
+      'caloriesBurned': caloriesBurned,
     };
+  }
+
+  factory WorkoutLog.fromMap(Map<String, dynamic> map) {
+    return WorkoutLog(
+      exerciseName: map['exerciseName'] ?? '',
+      category: map['category'] ?? '',
+      metValue: (map['metValue'] ?? 0.0).toDouble(),
+      durationInMinutes: map['durationInMinutes'] ?? 0,
+      caloriesBurned: (map['caloriesBurned'] ?? 0.0).toDouble(),
+    );
   }
 }

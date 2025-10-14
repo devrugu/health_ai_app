@@ -7,34 +7,41 @@ class DailyLog {
   final DateTime date;
   final int waterConsumedMl;
   final Set<String> mealsEaten;
-  final WorkoutLog? workout;
+  // UPDATED: This is now a list of WorkoutLog objects.
+  final List<WorkoutLog> workouts;
 
   DailyLog({
     required this.date,
     this.waterConsumedMl = 0,
     this.mealsEaten = const {},
-    this.workout,
+    this.workouts = const [], // Default to an empty list
   });
 
-  // UPDATED: toFirestore method is now complete.
   Map<String, dynamic> toFirestore() {
     return {
-      'date': Timestamp.fromDate(date), // Use Firestore's Timestamp for dates
+      'date': Timestamp.fromDate(date),
       'waterConsumedMl': waterConsumedMl,
       'mealsEaten': mealsEaten.toList(),
-      'workout': workout?.toFirestore(),
+      // UPDATED: Convert each WorkoutLog in the list to a map.
+      'workouts': workouts.map((workout) => workout.toFirestore()).toList(),
     };
   }
 
-  // NEW: A factory to create a DailyLog from a Firestore document.
   factory DailyLog.fromFirestore(Map<String, dynamic> data) {
+    // NEW: Logic to parse the list of workouts
+    List<WorkoutLog> workouts = [];
+    if (data['workouts'] != null) {
+      workouts = (data['workouts'] as List<dynamic>).map((workoutData) {
+        // We need a factory for WorkoutLog as well
+        return WorkoutLog.fromMap(workoutData);
+      }).toList();
+    }
+
     return DailyLog(
       date: (data['date'] as Timestamp).toDate(),
       waterConsumedMl: data['waterConsumedMl'] ?? 0,
-      // Convert the list from Firestore back into a Set.
       mealsEaten: Set<String>.from(data['mealsEaten'] ?? []),
-      // We will implement workout fetching later.
-      workout: null,
+      workouts: workouts,
     );
   }
 }

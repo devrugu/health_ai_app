@@ -7,12 +7,11 @@ import 'package:health_ai_app/src/features/database/data/database_service.dart';
 import 'package:health_ai_app/src/features/database/domain/daily_log.dart';
 import 'package:health_ai_app/src/features/database/domain/user_profile.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/daily_summary_card.dart';
-import 'package:health_ai_app/src/features/dashboard/presentation/widgets/log_workout_card.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/meal_plan_card.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_tracker_card.dart';
+import 'package:health_ai_app/src/features/dashboard/presentation/widgets/workout_summary_card.dart'; // Import new card
 
 class TodayTab extends StatefulWidget {
-  // NEW: It now accepts the visibility state and a callback from its parent.
   final bool isWelcomeMessageVisible;
   final VoidCallback onDismissWelcomeMessage;
 
@@ -63,6 +62,7 @@ class _TodayTabState extends State<TodayTab> {
     }
 
     if (_userProfile == null || _userProfile!.todaysPlan == null) {
+      // ... (fallback UI is unchanged)
       return Scaffold(
         appBar: AppBar(title: const Text("Today's Plan")),
         body: RefreshIndicator(
@@ -91,6 +91,9 @@ class _TodayTabState extends State<TodayTab> {
     final welcomeMessage = plan.welcomeMessage;
     final initialWater = _dailyLog?.waterConsumedMl ?? 0;
     final initialMeals = _dailyLog?.mealsEaten ?? {};
+    final loggedWorkouts = _dailyLog?.workouts ?? [];
+    // Safely get user weight, with a default fallback
+    final userWeight = (_userProfile!.profileData['weight'] ?? 70.0).toDouble();
 
     return Scaffold(
       appBar: AppBar(
@@ -104,10 +107,10 @@ class _TodayTabState extends State<TodayTab> {
             if (welcomeMessage.isNotEmpty)
               _WelcomeMessageCard(
                 message: welcomeMessage,
-                // UPDATED: Pass the values from the parent widget down.
                 isVisible: widget.isWelcomeMessageVisible,
                 onDismiss: widget.onDismissWelcomeMessage,
               ),
+
             Text(
               "Hello, $displayName!",
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -127,10 +130,16 @@ class _TodayTabState extends State<TodayTab> {
               initialConsumedMl: initialWater,
             ),
             const SizedBox(height: 24),
-            if (_dailyLog?.workout == null) ...[
-              const LogWorkoutCard(),
-              const SizedBox(height: 24),
-            ],
+
+            // THIS IS THE CORRECT IMPLEMENTATION.
+            // It uses the new summary card and passes the required data.
+            // The old LogWorkoutCard is not used here.
+            WorkoutSummaryCard(
+              loggedWorkouts: loggedWorkouts,
+              userWeightKg: userWeight,
+            ),
+
+            const SizedBox(height: 24),
             MealPlanCard(
               meals: plan.initialMealPlan,
               initialEatenMeals: initialMeals,
@@ -145,6 +154,7 @@ class _TodayTabState extends State<TodayTab> {
   }
 }
 
+// ... (Welcome Message Card is unchanged)
 class _WelcomeMessageCard extends StatelessWidget {
   final String message;
   final bool isVisible;

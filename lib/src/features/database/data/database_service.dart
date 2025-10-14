@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
 import 'package:health_ai_app/src/features/database/domain/user_profile.dart';
 import 'package:health_ai_app/src/features/database/domain/daily_log.dart';
+import 'package:health_ai_app/src/features/workout/domain/workout_models.dart';
 
 class DatabaseService {
   // Get an instance of the Firestore database
@@ -147,6 +148,31 @@ class DatabaseService {
     } else {
       // If no log exists for today, return null
       return null;
+    }
+  }
+
+  Future<void> logWorkout(WorkoutLog workout) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final logId = _getDailyLogId();
+    final logDocRef = _db
+        .collection('users')
+        .doc(user.uid)
+        .collection('daily_logs')
+        .doc(logId);
+
+    try {
+      // Atomically add the new workout to the 'workouts' array field.
+      // This is safe to call multiple times.
+      await logDocRef.set({
+        'workouts': FieldValue.arrayUnion([workout.toFirestore()])
+      }, SetOptions(merge: true));
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error logging workout: $e');
+      }
+      throw Exception('Could not log workout.');
     }
   }
 }

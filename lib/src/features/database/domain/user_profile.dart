@@ -6,18 +6,19 @@ class UserProfile {
   final String uid;
   final String displayName;
   final String email;
-  // NEW: Add the TodaysPlan object
   final TodaysPlan? todaysPlan;
+  // NEW: Add the profile data map
+  final Map<String, dynamic> profileData;
 
   UserProfile({
     required this.uid,
     required this.displayName,
     required this.email,
     this.todaysPlan,
+    this.profileData = const {}, // Default to an empty map
   });
 
   factory UserProfile.fromFirestore(Map<String, dynamic> data) {
-    // Check if the 'todays_plan' map exists in the data and create an object if it does
     final planData = data['todays_plan'] as Map<String, dynamic>?;
     final TodaysPlan? plan =
         planData != null ? TodaysPlan.fromMap(planData) : null;
@@ -27,6 +28,8 @@ class UserProfile {
       displayName: data['displayName'] ?? 'User',
       email: data['email'] ?? '',
       todaysPlan: plan,
+      // NEW: Parse the profile data from Firestore
+      profileData: data['profileData'] as Map<String, dynamic>? ?? {},
     );
   }
 }
