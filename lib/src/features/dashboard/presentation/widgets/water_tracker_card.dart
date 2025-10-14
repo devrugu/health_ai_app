@@ -1,36 +1,65 @@
 // lib/src/features/dashboard/presentation/widgets/water_tracker_card.dart
 
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:health_ai_app/src/features/database/data/database_service.dart'; // Import DatabaseService
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/cup_size_selector.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_log_controls.dart';
 
 class WaterTrackerCard extends StatefulWidget {
-  // NEW: Add a parameter for the goal
   final int waterGoalMl;
+  // NEW: Add the initial consumed value from the daily log
+  final int initialConsumedMl;
 
-  const WaterTrackerCard({super.key, required this.waterGoalMl});
+  const WaterTrackerCard({
+    super.key,
+    required this.waterGoalMl,
+    required this.initialConsumedMl,
+  });
 
   @override
   State<WaterTrackerCard> createState() => _WaterTrackerCardState();
 }
 
 class _WaterTrackerCardState extends State<WaterTrackerCard> {
-  // REMOVED: The hardcoded goal is gone
-  int _waterConsumedMl = 0;
+  // State is now initialized from the widget's parameters
+  late int _waterConsumedMl;
   final List<int> _cupSizes = const [250, 330, 500];
   int _selectedCupSize = 250;
+  // NEW: Timer to debounce database writes
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set the initial state from the value passed in
+    _waterConsumedMl = widget.initialConsumedMl;
+  }
+
+  // NEW: Debounced database update method
+  void _updateWaterLogInDatabase() {
+    // If a timer is already active, cancel it
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    // Start a new timer. The database will only be updated after 500ms of no changes.
+    // This prevents writing to the database on every single button tap if the user taps quickly.
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      DatabaseService().updateDailyLog({'waterConsumedMl': _waterConsumedMl});
+    });
+  }
 
   void _addWater() {
     setState(() {
       _waterConsumedMl = _waterConsumedMl + _selectedCupSize;
     });
+    _updateWaterLogInDatabase(); // Call the debounced update
   }
 
   void _removeWater() {
     setState(() {
       _waterConsumedMl = max(0, _waterConsumedMl - _selectedCupSize);
     });
+    _updateWaterLogInDatabase(); // Call the debounced update
   }
 
   void _onCupSizeChanged(int newSize) {
@@ -38,15 +67,20 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
       _selectedCupSize = newSize;
     });
   }
-  
-  // UPDATED: Use the widget's waterGoalMl parameter
+
+  @override
+  void dispose() {
+    // It's crucial to cancel any active timer when the widget is disposed
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   double get _visualProgress => min(1.0, _waterConsumedMl / widget.waterGoalMl);
   double get _actualProgress => _waterConsumedMl / widget.waterGoalMl;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // UPDATED: Use the widget's waterGoalMl parameter
     final goalInLiters = (widget.waterGoalMl / 1000).toStringAsFixed(1);
     
     final isGoalMet = _waterConsumedMl >= widget.waterGoalMl;
@@ -109,7 +143,6 @@ class _WaterTrackerCardState extends State<WaterTrackerCard> {
             const SizedBox(height: 12),
             WaterLogControls(
               waterConsumedMl: _waterConsumedMl,
-              // UPDATED: Use the widget's waterGoalMl parameter
               waterGoalMl: widget.waterGoalMl,
               onAdd: _addWater,
               onRemove: _removeWater,

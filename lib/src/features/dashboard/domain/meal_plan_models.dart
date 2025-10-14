@@ -72,7 +72,6 @@ class Meal {
   }
 }
 
-// NEW: A class to hold the entire daily plan from the AI
 class TodaysPlan {
   final int dailyCalorieTarget;
   final int dailyProteinTarget;
@@ -80,6 +79,8 @@ class TodaysPlan {
   final int dailyFatTarget;
   final int dailyWaterTargetMl;
   final List<Meal> initialMealPlan;
+  // NEW: Add the missing field
+  final String welcomeMessage;
 
   TodaysPlan({
     required this.dailyCalorieTarget,
@@ -88,6 +89,8 @@ class TodaysPlan {
     required this.dailyFatTarget,
     required this.dailyWaterTargetMl,
     required this.initialMealPlan,
+    // NEW: Add to the constructor
+    required this.welcomeMessage,
   });
 
   factory TodaysPlan.fromMap(Map<String, dynamic> map) {
@@ -103,6 +106,8 @@ class TodaysPlan {
       dailyFatTarget: map['dailyFatTarget'] ?? 60,
       dailyWaterTargetMl: map['dailyWaterTargetMl'] ?? 2500,
       initialMealPlan: mealPlanList,
+      // NEW: Parse the welcome message from the map, with a default fallback.
+      welcomeMessage: map['welcomeMessage'] ?? 'Welcome to your new plan!',
     );
   }
 }

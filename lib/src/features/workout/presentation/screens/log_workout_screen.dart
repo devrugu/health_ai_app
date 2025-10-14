@@ -1,8 +1,8 @@
 // lib/src/features/workout/presentation/screens/log_workout_screen.dart
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:health_ai_app/src/features/database/data/database_service.dart'; // NEW: Import DatabaseService
 import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.dart';
 import 'package:health_ai_app/src/features/workout/domain/workout_models.dart';
 
@@ -14,32 +14,48 @@ class LogWorkoutScreen extends StatefulWidget {
 }
 
 class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
-  // --- STATE VARIABLES ---
   ExercisePreference? _selectedType;
   double _durationInMinutes = 30;
-
-  // --- THIS IS THE FIX ---
-  // We initialize the selected intensity with a default value.
-  // This ensures the SegmentedButton's 'selected' set is never empty.
   WorkoutIntensity _selectedIntensity = WorkoutIntensity.medium;
+  // NEW: Add loading state
+  bool _isLoading = false;
 
-  // --- VALIDATION ---
-  // The form is now valid as soon as a type is selected, since the other two have defaults.
   bool get _isFormValid => _selectedType != null;
 
-  // --- SUBMIT ACTION ---
-  void _submitLog() {
-    if (_isFormValid) {
-      final log = WorkoutLog(
-        type: _selectedType!,
-        durationInMinutes: _durationInMinutes.round(),
-        intensity: _selectedIntensity,
+  // --- UPDATED SUBMIT LOGIC ---
+  void _submitLog() async {
+    // Make the method async
+    if (!_isFormValid) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    final log = WorkoutLog(
+      type: _selectedType!,
+      durationInMinutes: _durationInMinutes.round(),
+      intensity: _selectedIntensity,
+    );
+
+    try {
+      // Call the database service, converting our WorkoutLog object to a map
+      await DatabaseService().updateDailyLog({
+        'workout': log.toFirestore(),
+      });
+      // Pop the screen to return to the dashboard
+      navigator.pop();
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Failed to log workout: ${e.toString()}')),
       );
-      if (kDebugMode) {
-        print(
-            'Workout Logged: Type=${log.type}, Duration=${log.durationInMinutes}min, Intensity=${log.intensity}');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
-      Navigator.of(context).pop();
     }
   }
 
@@ -55,7 +71,7 @@ class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- WORKOUT TYPE SELECTION ---
+            // ... (The rest of the UI is unchanged)
             _buildSectionHeader(theme, 'Workout Type'),
             const SizedBox(height: 16),
             Wrap(
@@ -72,7 +88,6 @@ class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
 
             const SizedBox(height: 32),
 
-            // --- DURATION SLIDER ---
             _buildSectionHeader(theme, 'Duration'),
             const SizedBox(height: 8),
             Text(
@@ -91,7 +106,6 @@ class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
 
             const SizedBox(height: 32),
 
-            // --- INTENSITY SELECTION ---
             _buildSectionHeader(theme, 'Intensity'),
             const SizedBox(height: 16),
             SizedBox(
@@ -111,14 +125,10 @@ class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
                       label: Text('High'),
                       icon: Icon(Icons.arrow_upward)),
                 ],
-                // The selected set is now guaranteed to always have one item.
                 selected: {_selectedIntensity},
-                // We enable multiple selection, but our logic only ever sets one.
-                // Or, more robustly, ensure it's single-selection.
                 multiSelectionEnabled: false,
                 emptySelectionAllowed: false,
                 onSelectionChanged: (selection) {
-                  // The new set will contain one item. We update our state with it.
                   setState(() {
                     _selectedIntensity = selection.first;
                   });
@@ -128,11 +138,16 @@ class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
           ],
         ),
       ),
+      // --- UPDATED SUBMIT BUTTON ---
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(24.0).copyWith(bottom: 48),
         child: ElevatedButton(
-          onPressed: _isFormValid ? _submitLog : null,
-          child: const Text('Log Workout'),
+          // Disable when loading OR when form is invalid
+          onPressed: (_isFormValid && !_isLoading) ? _submitLog : null,
+          child: _isLoading
+              ? const SizedBox(
+                  height: 24, width: 24, child: CircularProgressIndicator())
+              : const Text('Log Workout'),
         ),
       ),
     );

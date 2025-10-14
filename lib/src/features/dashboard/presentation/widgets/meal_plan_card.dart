@@ -1,24 +1,34 @@
 // lib/src/features/dashboard/presentation/widgets/meal_plan_card.dart
 
 import 'package:flutter/material.dart';
+import 'package:health_ai_app/src/features/database/data/database_service.dart'; // Import
 import 'package:health_ai_app/src/features/dashboard/domain/meal_plan_models.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/meal_item_card.dart';
 
 class MealPlanCard extends StatefulWidget {
-  // NEW: Add a parameter for the meal plan
   final List<Meal> meals;
+  // NEW: Pass in the set of already eaten meals
+  final Set<String> initialEatenMeals;
 
-  const MealPlanCard({super.key, required this.meals});
+  const MealPlanCard({
+    super.key,
+    required this.meals,
+    required this.initialEatenMeals,
+  });
 
   @override
   State<MealPlanCard> createState() => _MealPlanCardState();
 }
 
 class _MealPlanCardState extends State<MealPlanCard> {
-  // REMOVED: The hardcoded list of meals is gone.
-  final Set<String> _eatenMeals = {};
+  // State is now initialized from the widget's parameters
+  late Set<String> _eatenMeals;
 
-  // REMOVED: initState is no longer needed to create sample data.
+  @override
+  void initState() {
+    super.initState();
+    _eatenMeals = widget.initialEatenMeals;
+  }
 
   void _toggleMealEaten(String mealName) {
     setState(() {
@@ -28,11 +38,12 @@ class _MealPlanCardState extends State<MealPlanCard> {
         _eatenMeals.add(mealName);
       }
     });
+    // Save the updated list to the database
+    DatabaseService().updateDailyLog({'mealsEaten': _eatenMeals.toList()});
   }
 
   @override
   Widget build(BuildContext context) {
-    // If for some reason the meal plan is empty, show a message.
     if (widget.meals.isEmpty) {
       return const Center(child: Text('No meal plan available for today.'));
     }
@@ -46,8 +57,8 @@ class _MealPlanCardState extends State<MealPlanCard> {
         ),
         const SizedBox(height: 16),
         Column(
-          // UPDATED: Use widget.meals to generate the list of cards
           children: widget.meals.map((meal) {
+            // Use the state variable to check if a meal is eaten
             final isEaten = _eatenMeals.contains(meal.name);
             return Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
