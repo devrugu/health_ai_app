@@ -44,3 +44,5 @@ app.*.map.json
 
 # Secret API keys
 .env
+
+lib/firebase_options.dart
