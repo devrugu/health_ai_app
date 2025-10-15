@@ -1,34 +1,28 @@
 // lib/src/features/workout/domain/exercise.dart
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Exercise {
+  final String id;
   final String name;
   final String category;
-  final double metValue; // Metabolic Equivalent of Task
+  final double metValue;
 
   const Exercise({
+    required this.id,
     required this.name,
     required this.category,
     required this.metValue,
   });
+
+  // Factory to create an Exercise from a Firestore document
+  factory Exercise.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    return Exercise(
+      id: doc.id,
+      name: data['name'] ?? '',
+      category: data['category'] ?? '',
+      metValue: (data['metValue'] ?? 0.0).toDouble(),
+    );
+  }
 }
-
-// Our initial library of curated exercises. This can be expanded easily.
-const List<Exercise> exerciseLibrary = [
-  // Cardio
-  Exercise(name: 'Running (Moderate)', category: 'Cardio', metValue: 9.8),
-  Exercise(name: 'Cycling (Moderate)', category: 'Cardio', metValue: 7.5),
-  Exercise(name: 'Swimming (Freestyle)', category: 'Cardio', metValue: 9.5),
-  Exercise(name: 'Jump Rope', category: 'Cardio', metValue: 11.8),
-
-  // Strength
-  Exercise(
-      name: 'Weightlifting (Vigorous)', category: 'Strength', metValue: 6.0),
-  Exercise(name: 'Bodyweight (Vigorous)', category: 'Strength', metValue: 8.0),
-  Exercise(
-      name: 'Calisthenics (Moderate)', category: 'Strength', metValue: 3.8),
-
-  // Flexibility & Mind
-  Exercise(name: 'Yoga (Hatha)', category: 'Flexibility & Mind', metValue: 2.5),
-  Exercise(name: 'Stretching', category: 'Flexibility & Mind', metValue: 2.3),
-  Exercise(name: 'Pilates', category: 'Flexibility & Mind', metValue: 3.0),
-];

@@ -14,16 +14,31 @@ class LogWorkoutScreen extends StatefulWidget {
 }
 
 class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
-  // State variables
+  // State for the list of exercises fetched from Firestore
+  List<Exercise>? _exerciseLibrary;
+  // State for the form
   Exercise? _selectedExercise;
   double _durationInMinutes = 30;
   bool _isLoading = false;
 
-  // Calculate calories burned in real-time
+  @override
+  void initState() {
+    super.initState();
+    _fetchExercises();
+  }
+
+  Future<void> _fetchExercises() async {
+    final exercises = await DatabaseService().getExerciseLibrary();
+    if (mounted) {
+      setState(() {
+        _exerciseLibrary = exercises;
+      });
+    }
+  }
+
   double get _caloriesBurned {
     if (_selectedExercise == null) return 0;
-    // Formula: METs * 3.5 * (body weight in kg) / 200 * (duration in minutes)
-    // A slightly more standard variation of the formula
+    // Standard MET-based formula
     return _selectedExercise!.metValue *
         3.5 *
         widget.userWeightKg /
@@ -70,62 +85,62 @@ class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Log a Workout')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- EXERCISE SELECTION ---
-            Text('Exercise', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            // Use DropdownButtonFormField for a clean selection UI
-            DropdownButtonFormField<Exercise>(
-              initialValue: _selectedExercise,
-              hint: const Text('Select an exercise'),
-              isExpanded: true,
-              items: exerciseLibrary.map((Exercise exercise) {
-                return DropdownMenuItem<Exercise>(
-                  value: exercise,
-                  child: Text(exercise.name),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedExercise = value;
-                });
-              },
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 32),
-
-            // --- DURATION SLIDER ---
-            Text('Duration', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              '${_durationInMinutes.round()} minutes',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            Slider(
-              value: _durationInMinutes,
-              min: 0,
-              max: 180,
-              divisions: 36, // Snap to 5-minute intervals
-              label: '${_durationInMinutes.round()} min',
-              onChanged: (value) => setState(() => _durationInMinutes = value),
-            ),
-            const SizedBox(height: 32),
-
-            // --- REAL-TIME CALORIE ESTIMATE ---
-            Center(
-              child: Text(
-                'Estimated Burn: ${_caloriesBurned.toStringAsFixed(0)} kcal',
-                style: theme.textTheme.titleMedium,
+      // Show a loading spinner while the exercise library is being fetched
+      body: _exerciseLibrary == null
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Exercise', style: theme.textTheme.titleLarge),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<Exercise>(
+                    initialValue: _selectedExercise,
+                    hint: const Text('Select an exercise'),
+                    isExpanded: true,
+                    // Populate the dropdown with items from our fetched library
+                    items: _exerciseLibrary!.map((Exercise exercise) {
+                      return DropdownMenuItem<Exercise>(
+                        value: exercise,
+                        child: Text(exercise.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedExercise = value;
+                      });
+                    },
+                    decoration:
+                        const InputDecoration(border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 32),
+                  Text('Duration', style: theme.textTheme.titleLarge),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${_durationInMinutes.round()} minutes',
+                    style: theme.textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Slider(
+                    value: _durationInMinutes,
+                    min: 0,
+                    max: 180,
+                    divisions: 36,
+                    label: '${_durationInMinutes.round()} min',
+                    onChanged: (value) =>
+                        setState(() => _durationInMinutes = value),
+                  ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: Text(
+                      'Estimated Burn: ${_caloriesBurned.toStringAsFixed(0)} kcal',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(24.0).copyWith(bottom: 48),
         child: ElevatedButton(

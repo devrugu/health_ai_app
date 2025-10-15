@@ -28,17 +28,17 @@ class DailyLog {
   }
 
   factory DailyLog.fromFirestore(Map<String, dynamic> data) {
-    // NEW: Logic to parse the list of workouts
     List<WorkoutLog> workouts = [];
-    if (data['workouts'] != null) {
+    if (data['workouts'] != null && data['workouts'] is List) {
       workouts = (data['workouts'] as List<dynamic>).map((workoutData) {
-        // We need a factory for WorkoutLog as well
-        return WorkoutLog.fromMap(workoutData);
+        return WorkoutLog.fromMap(workoutData as Map<String, dynamic>);
       }).toList();
     }
+    // Handle the case where 'date' might be null or not a Timestamp
+    final date = (data['date'] as Timestamp?)?.toDate() ?? DateTime.now();
 
     return DailyLog(
-      date: (data['date'] as Timestamp).toDate(),
+      date: date,
       waterConsumedMl: data['waterConsumedMl'] ?? 0,
       mealsEaten: Set<String>.from(data['mealsEaten'] ?? []),
       workouts: workouts,

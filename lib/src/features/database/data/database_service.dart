@@ -7,6 +7,7 @@ import 'package:health_ai_app/src/features/onboarding/domain/onboarding_models.d
 import 'package:health_ai_app/src/features/database/domain/user_profile.dart';
 import 'package:health_ai_app/src/features/database/domain/daily_log.dart';
 import 'package:health_ai_app/src/features/workout/domain/workout_models.dart';
+import 'package:health_ai_app/src/features/workout/domain/exercise.dart';
 
 class DatabaseService {
   // Get an instance of the Firestore database
@@ -163,16 +164,36 @@ class DatabaseService {
         .doc(logId);
 
     try {
-      // Atomically add the new workout to the 'workouts' array field.
-      // This is safe to call multiple times.
-      await logDocRef.set({
+      // --- THIS IS THE FIX ---
+      // We now create a map that includes the workout AND the date.
+      // FieldValue.serverTimestamp() will only be set if the document is created.
+      // On a merge, it's ignored if the field already exists. This is perfect.
+      final logData = {
+        'date': FieldValue.serverTimestamp(),
         'workouts': FieldValue.arrayUnion([workout.toFirestore()])
-      }, SetOptions(merge: true));
+      };
+
+      // Set with merge will now create the doc with both fields, or just
+      // update the 'workouts' array if the doc already exists.
+      await logDocRef.set(logData, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) {
         print('Error logging workout: $e');
       }
       throw Exception('Could not log workout.');
+    }
+  }
+
+  Future<List<Exercise>> getExerciseLibrary() async {
+    try {
+      final snapshot = await _db.collection('exercises').get();
+      // Map each document to an Exercise object
+      return snapshot.docs.map((doc) => Exercise.fromFirestore(doc)).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching exercise library: $e');
+      }
+      return []; // Return an empty list in case of error
     }
   }
 }

@@ -1,7 +1,5 @@
 // lib/src/features/workout/domain/workout_models.dart
 
-// We no longer need the old enums here.
-
 class WorkoutLog {
   final String exerciseName;
   final String category;
@@ -17,7 +15,6 @@ class WorkoutLog {
     required this.caloriesBurned,
   });
 
-  // Convert the object to a map for Firestore.
   Map<String, dynamic> toFirestore() {
     return {
       'exerciseName': exerciseName,

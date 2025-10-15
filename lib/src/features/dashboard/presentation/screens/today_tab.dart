@@ -9,7 +9,7 @@ import 'package:health_ai_app/src/features/database/domain/user_profile.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/daily_summary_card.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/meal_plan_card.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_tracker_card.dart';
-import 'package:health_ai_app/src/features/dashboard/presentation/widgets/workout_summary_card.dart'; // Import new card
+import 'package:health_ai_app/src/features/dashboard/presentation/widgets/workout_summary_card.dart';
 
 class TodayTab extends StatefulWidget {
   final bool isWelcomeMessageVisible;
@@ -62,7 +62,6 @@ class _TodayTabState extends State<TodayTab> {
     }
 
     if (_userProfile == null || _userProfile!.todaysPlan == null) {
-      // ... (fallback UI is unchanged)
       return Scaffold(
         appBar: AppBar(title: const Text("Today's Plan")),
         body: RefreshIndicator(
@@ -91,8 +90,8 @@ class _TodayTabState extends State<TodayTab> {
     final welcomeMessage = plan.welcomeMessage;
     final initialWater = _dailyLog?.waterConsumedMl ?? 0;
     final initialMeals = _dailyLog?.mealsEaten ?? {};
+    // NEW: Get the list of workouts and the user's weight from the fetched data
     final loggedWorkouts = _dailyLog?.workouts ?? [];
-    // Safely get user weight, with a default fallback
     final userWeight = (_userProfile!.profileData['weight'] ?? 70.0).toDouble();
 
     return Scaffold(
@@ -131,9 +130,9 @@ class _TodayTabState extends State<TodayTab> {
             ),
             const SizedBox(height: 24),
 
-            // THIS IS THE CORRECT IMPLEMENTATION.
-            // It uses the new summary card and passes the required data.
-            // The old LogWorkoutCard is not used here.
+            // --- THIS IS THE FINAL CHANGE ---
+            // The old LogWorkoutCard is completely replaced with the new WorkoutSummaryCard,
+            // which receives the live data.
             WorkoutSummaryCard(
               loggedWorkouts: loggedWorkouts,
               userWeightKg: userWeight,
@@ -154,7 +153,6 @@ class _TodayTabState extends State<TodayTab> {
   }
 }
 
-// ... (Welcome Message Card is unchanged)
 class _WelcomeMessageCard extends StatelessWidget {
   final String message;
   final bool isVisible;

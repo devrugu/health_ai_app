@@ -6,7 +6,7 @@ import 'package:health_ai_app/src/features/workout/presentation/screens/log_work
 
 class WorkoutSummaryCard extends StatelessWidget {
   final List<WorkoutLog> loggedWorkouts;
-  // We need the user's weight for calorie calculations on the next screen
+  // We need the user's weight to pass it to the LogWorkoutScreen
   final double userWeightKg;
 
   const WorkoutSummaryCard({
@@ -18,7 +18,7 @@ class WorkoutSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Calculate total calories burned from all logged workouts
+    // Calculate the total calories burned from all logged workouts
     final totalCaloriesBurned = loggedWorkouts.fold(
       0.0,
       (sum, workout) => sum + workout.caloriesBurned,
@@ -41,6 +41,7 @@ class WorkoutSummaryCard extends StatelessWidget {
                   style: theme.textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
+                // The button to add a new workout
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).push(
@@ -56,19 +57,24 @@ class WorkoutSummaryCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
+            // Display the total calories burned
             Text(
               "Total Burned: ${totalCaloriesBurned.toStringAsFixed(0)} kcal",
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withAlpha(178),
               ),
             ),
-            const SizedBox(height: 16),
+            const Divider(height: 24),
             // If no workouts are logged, show a prompt. Otherwise, show the list.
             if (loggedWorkouts.isEmpty)
               const Center(
-                child: Text("No workouts logged yet for today."),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text("No workouts logged yet for today."),
+                ),
               )
             else
+              // Create a list of compact tiles for each logged workout
               ...loggedWorkouts.map((log) => ListTile(
                     dense: true,
                     leading: const Icon(Icons.fitness_center),
