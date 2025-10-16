@@ -41,14 +41,14 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # --- THIS IS THE FIX ---
+      # --- THIS IS THE DEFINITIVE FIX ---
       - name: Build DEBUG APK
-        # Use 'flutter build apk' to build the debug version.
-        run: flutter build apk
+        # Use the explicit '--debug' flag to force a debug build.
+        run: flutter build apk --debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
-          # The path must match the output of the debug build command.
+          # This path correctly matches the output of a debug build.
           path: build/app/outputs/flutter-apk/app-debug.apk
