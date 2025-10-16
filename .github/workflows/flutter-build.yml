@@ -21,15 +21,14 @@ jobs:
           flutter-version: '3.35.5'
           channel: 'stable'
 
-      # --- NEW STEPS START HERE ---
+      - name: Decode google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > ${{ github.workspace }}/android/app/google-services.json
 
       - name: Activate FlutterFire CLI
         run: dart pub global activate flutterfire_cli
 
       - name: Generate Firebase Options
-        run: flutterfire configure --project=${{ secrets.FIREBASE_PROJECT_ID }} --out=lib/firebase_options.dart --yes --api-key=${{ secrets.FIREBASE_API_KEY }} --app-id=${{ secrets.FIREBASE_APP_ID }} --android
-
-      # --- NEW STEPS END HERE ---
+        run: flutterfire configure --project=${{ secrets.FIREBASE_PROJECT_ID }} --yes --platforms=android
 
       - name: Get dependencies
         run: flutter pub get
