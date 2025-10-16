@@ -28,12 +28,15 @@ jobs:
 
       - name: Decode google-services.json
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > ${{ github.workspace }}/android/app/google-services.json
+      
+      # NEW: Create the .env file from our GitHub secret
+      - name: Create .env file
+        run: echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
 
       - name: Activate FlutterFire CLI
         run: dart pub global activate flutterfire_cli
 
       - name: Generate Firebase Options
-        # This step is now simpler and uses the FIREBASE_TOKEN for authentication
         run: flutterfire configure --project=${{ secrets.FIREBASE_PROJECT_ID }} --yes --platforms=android
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
