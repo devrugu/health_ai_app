@@ -1,29 +1,39 @@
 name: Flutter Build APK
 
 on:
-  workflow_dispatch:  # Manuel tetiklemeye izin verir
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17' # Using Java 17 is standard for modern Android builds
-      
+          java-version: '17'
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.5' # UPDATED Flutter version
+          flutter-version: '3.35.5'
           channel: 'stable'
-      
+
+      # --- NEW STEPS START HERE ---
+
+      - name: Activate FlutterFire CLI
+        run: dart pub global activate flutterfire_cli
+
+      - name: Generate Firebase Options
+        run: flutterfire configure --project=${{ secrets.FIREBASE_PROJECT_ID }} --out=lib/firebase_options.dart --yes --api-key=${{ secrets.FIREBASE_API_KEY }} --app-id=${{ secrets.FIREBASE_APP_ID }} --android
+
+      # --- NEW STEPS END HERE ---
+
       - name: Get dependencies
         run: flutter pub get
-        
+
       - name: Build APK
         run: flutter build apk --release
 
