@@ -21,10 +21,7 @@ jobs:
           flutter-version: '3.35.5'
           channel: 'stable'
 
-      # --- FULLY CORRECTED STEPS ---
-
       - name: Install Firebase CLI
-        # This step is required for the flutterfire command to authenticate
         run: npm install -g firebase-tools
 
       - name: Decode google-services.json
@@ -37,22 +34,21 @@ jobs:
         run: dart pub global activate flutterfire_cli
 
       - name: Generate Firebase Options
-        # We must provide the FIREBASE_TOKEN for this command to log in
         run: flutterfire configure --project=${{ secrets.FIREBASE_PROJECT_ID }} --yes --platforms=android
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      # --- END OF CORRECTED STEPS ---
-
       - name: Get dependencies
         run: flutter pub get
 
+      # --- THIS IS THE FIX ---
       - name: Build DEBUG APK
-        # The command is correct: 'build apk' with no --release flag
+        # Use 'flutter build apk' to build the debug version.
         run: flutter build apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
+          # The path must match the output of the debug build command.
           path: build/app/outputs/flutter-apk/app-debug.apk
