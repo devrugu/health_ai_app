@@ -14,46 +14,38 @@ class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // --- User Profile ---
-
   /// Creates a new user profile document in Firestore after they complete onboarding.
   Future<void> createUserProfile({
     required User user,
     required double height,
     required double weight,
+    required int age,
+    required Gender gender,
     required ActivityLevel activityLevel,
     required Goal goal,
     required ExercisePreference exercisePreference,
   }) async {
     try {
-      // Create a reference to a new document in the 'users' collection
-      // The document will have the same ID as the authenticated user's UID.
       final userDocRef = _db.collection('users').doc(user.uid);
-
-      // We will also store some basic info from the auth provider
       final String? displayName = user.displayName;
       final String? email = user.email;
-
-      // Create a map of the data we want to save
       final userData = {
         'uid': user.uid,
         'displayName': displayName ?? 'New User',
         'email': email,
-        'createdAt':
-            FieldValue.serverTimestamp(), // Use server time for consistency
+        'createdAt': FieldValue.serverTimestamp(),
         'profileData': {
           'height': height,
           'weight': weight,
-          // Store enums as strings for readability in the database
+          'age': age,
+          'gender': gender.name,
           'activityLevel': activityLevel.name,
           'goal': goal.name,
           'exercisePreference': exercisePreference.name,
         }
       };
-
-      // Set the data for the new document
       await userDocRef.set(userData);
     } catch (e) {
-      // It's good practice to re-throw errors to be handled by the UI
       if (kDebugMode) {
         print('Error creating user profile: $e');
       }
@@ -164,17 +156,11 @@ class DatabaseService {
         .doc(logId);
 
     try {
-      // --- THIS IS THE FIX ---
-      // We now create a map that includes the workout AND the date.
-      // FieldValue.serverTimestamp() will only be set if the document is created.
-      // On a merge, it's ignored if the field already exists. This is perfect.
       final logData = {
         'date': FieldValue.serverTimestamp(),
         'workouts': FieldValue.arrayUnion([workout.toFirestore()])
       };
 
-      // Set with merge will now create the doc with both fields, or just
-      // update the 'workouts' array if the doc already exists.
       await logDocRef.set(logData, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) {

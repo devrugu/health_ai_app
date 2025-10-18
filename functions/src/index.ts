@@ -36,7 +36,7 @@ export const generateInitialPlan = onDocumentCreated(
 
       **Methodology:**
       1.  Calculate Basal Metabolic Rate (BMR) using the Mifflin-St Jeor 
-          equation. Assume the user's age is 30 for this initial calculation.
+          equation.
       2.  Determine Total Daily Energy Expenditure (TDEE) by applying an
           activity multiplier to the BMR based on the user's Activity Level:
           - sedentary: 1.2
@@ -54,6 +54,8 @@ export const generateInitialPlan = onDocumentCreated(
       **User Details:**
       - Height: ${profileData.height} cm
       - Weight: ${profileData.weight} kg
+      - Age: ${profileData.age} years
+      - Gender: ${profileData.gender}
       - Activity Level: ${profileData.activityLevel}
       - Primary Goal: ${profileData.goal}
       - Preferred Exercise: ${profileData.exercisePreference}

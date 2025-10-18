@@ -20,3 +20,8 @@ enum ExercisePreference {
   flexibility,
   mixed,
 }
+
+enum Gender {
+  male,
+  female,
+}

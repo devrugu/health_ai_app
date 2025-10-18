@@ -9,6 +9,7 @@ import 'package:health_ai_app/src/features/onboarding/presentation/widgets/activ
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/exercise_preference_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/goal_selection_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/personal_info_step.dart';
 
 class OnboardingDetailsScreen extends StatefulWidget {
   const OnboardingDetailsScreen({super.key});
@@ -25,64 +26,47 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
   // --- STATE VARIABLES ---
   double? _height;
   double? _weight;
+  int? _age;
+  Gender? _gender;
   ActivityLevel? _activityLevel;
   Goal? _goal;
   ExercisePreference? _exercisePreference;
 
-  // --- THIS IS THE FIX ---
-  // The 'late final' keywords are removed.
-  // The controllers are initialized immediately upon declaration.
-  // This guarantees they exist before the build method is ever called.
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _ageController = TextEditingController();
   bool _isLoading = false;
 
-  // We can keep this for the page count.
-  final List<Widget> _onboardingSteps = [
-    Container(),
-    Container(),
-    Container(),
-    Container(),
-  ];
+  final List<Widget> _onboardingSteps = List.generate(5, (_) => Container());
 
   @override
   void initState() {
     super.initState();
-    // The controllers are already initialized, so we just add the listeners here.
-    _heightController.addListener(() {
-      setState(() {
-        _height = double.tryParse(_heightController.text);
-      });
-    });
-    _weightController.addListener(() {
-      setState(() {
-        _weight = double.tryParse(_weightController.text);
-      });
-    });
+    _heightController.addListener(() =>
+        setState(() => _height = double.tryParse(_heightController.text)));
+    _weightController.addListener(() =>
+        setState(() => _weight = double.tryParse(_weightController.text)));
+    _ageController.addListener(
+        () => setState(() => _age = int.tryParse(_ageController.text))); // NEW
 
     _pageController.addListener(() {
       final newIndex = _pageController.page?.round();
       if (newIndex != null && newIndex != _currentPageIndex) {
-        setState(() {
-          _currentPageIndex = newIndex;
-        });
+        setState(() => _currentPageIndex = newIndex);
       }
     });
   }
 
   @override
   void dispose() {
-    // Disposing is still essential to prevent memory leaks.
     _pageController.dispose();
     _heightController.dispose();
     _weightController.dispose();
+    _ageController.dispose();
     super.dispose();
   }
 
-  // No changes to _handleNext, _handleBack, or _isCurrentPageValid
-
   void _handleNext() async {
-    // Make the method async
     if (!_isCurrentPageValid()) return;
 
     if (_currentPageIndex < _onboardingSteps.length - 1) {
@@ -91,18 +75,14 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
         curve: Curves.easeOutQuad,
       );
     } else {
-      // This is the Finish button logic
       setState(() {
         _isLoading = true;
       });
-
       final navigator = Navigator.of(context);
       final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-      // Get the current authenticated user
       final user = FirebaseAuth.instance.currentUser;
+
       if (user == null) {
-        // This should not happen if they got here, but it's a good safety check
         scaffoldMessenger.showSnackBar(
             const SnackBar(content: Text('Error: Not logged in.')));
         setState(() {
@@ -112,23 +92,22 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
       }
 
       try {
-        // Call the database service to save the data
         await DatabaseService().createUserProfile(
           user: user,
           height: _height!,
           weight: _weight!,
+          age: _age!,
+          gender: _gender!,
           activityLevel: _activityLevel!,
           goal: _goal!,
           exercisePreference: _exercisePreference!,
         );
 
-        // If successful, navigate to the dashboard
         navigator.pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainAppScreen()),
           (Route<dynamic> route) => false,
         );
       } catch (e) {
-        // Show an error message if saving fails
         scaffoldMessenger.showSnackBar(SnackBar(content: Text(e.toString())));
         if (mounted) {
           setState(() {
@@ -152,16 +131,18 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
 
   bool _isCurrentPageValid() {
     switch (_currentPageIndex) {
-      case 0:
+      case 0: // Height & Weight
         return _height != null &&
             _height! > 50 &&
             _weight != null &&
             _weight! > 20;
-      case 1:
+      case 1: // Age & Gender
+        return _age != null && _age! > 12 && _gender != null;
+      case 2: // Activity Level
         return _activityLevel != null;
-      case 2:
+      case 3: // Goal
         return _goal != null;
-      case 3:
+      case 4: // Exercise Preference
         return _exercisePreference != null;
       default:
         return false;
@@ -182,9 +163,7 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: _handleBack,
-          ),
+              icon: const Icon(Icons.arrow_back), onPressed: _handleBack),
           title: const Text('Your Details'),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(4.0),
@@ -201,26 +180,28 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
             switch (index) {
               case 0:
                 return MetricInputStep(
-                  heightController: _heightController,
-                  weightController: _weightController,
-                );
+                    heightController: _heightController,
+                    weightController: _weightController);
               case 1:
-                return ActivityLevelStep(
-                  selectedActivityLevel: _activityLevel,
-                  onSelection: (level) =>
-                      setState(() => _activityLevel = level),
-                );
+                return PersonalInfoStep(
+                    ageController: _ageController,
+                    selectedGender: _gender,
+                    onGenderSelected: (gender) =>
+                        setState(() => _gender = gender));
               case 2:
-                return GoalSelectionStep(
-                  selectedGoal: _goal,
-                  onSelection: (goal) => setState(() => _goal = goal),
-                );
+                return ActivityLevelStep(
+                    selectedActivityLevel: _activityLevel,
+                    onSelection: (level) =>
+                        setState(() => _activityLevel = level));
               case 3:
+                return GoalSelectionStep(
+                    selectedGoal: _goal,
+                    onSelection: (goal) => setState(() => _goal = goal));
+              case 4:
                 return ExercisePreferenceStep(
-                  selectedPreference: _exercisePreference,
-                  onSelection: (preference) =>
-                      setState(() => _exercisePreference = preference),
-                );
+                    selectedPreference: _exercisePreference,
+                    onSelection: (preference) =>
+                        setState(() => _exercisePreference = preference));
               default:
                 return Container();
             }
