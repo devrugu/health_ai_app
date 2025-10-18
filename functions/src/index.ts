@@ -59,6 +59,18 @@ export const generateInitialPlan = onDocumentCreated(
       - Activity Level: ${profileData.activityLevel}
       - Primary Goal: ${profileData.goal}
       - Preferred Exercise: ${profileData.exercisePreference}
+      
+      **Cultural and Economic Context:**
+      - User's Country of Residence: ${profileData.country || "Not provided"}
+      - User's Budget for Groceries: ${profileData.budget || "Not provided"}
+      
+      This context is critical. The meal plan you generate MUST be
+      culturally relevant and economically accessible for this user.
+      If the country is provided, prioritize common, affordable, and seasonal 
+      ingredients for that region. If the budget is 'budgetConscious', you MUST 
+      avoid expensive or hard-to-find import items (like avocado, quinoa, 
+      specialty berries, etc.) and focus on staples. If no context is provided,
+      generate a globally balanced and affordable meal plan.
 
       **Output Requirements:**
       Generate the following in a VALID JSON format ONLY.

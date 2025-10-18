@@ -25,3 +25,9 @@ enum Gender {
   male,
   female,
 }
+
+enum Budget {
+  budgetConscious,
+  average,
+  flexible,
+}

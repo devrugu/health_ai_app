@@ -10,6 +10,7 @@ import 'package:health_ai_app/src/features/onboarding/presentation/widgets/exerc
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/goal_selection_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/personal_info_step.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/contextual_info_step.dart';
 
 class OnboardingDetailsScreen extends StatefulWidget {
   const OnboardingDetailsScreen({super.key});
@@ -31,13 +32,15 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
   ActivityLevel? _activityLevel;
   Goal? _goal;
   ExercisePreference? _exercisePreference;
+  String? _country;
+  Budget? _budget;
 
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   bool _isLoading = false;
 
-  final List<Widget> _onboardingSteps = List.generate(5, (_) => Container());
+  final List<Widget> _onboardingSteps = List.generate(6, (_) => Container());
 
   @override
   void initState() {
@@ -101,6 +104,8 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
           activityLevel: _activityLevel!,
           goal: _goal!,
           exercisePreference: _exercisePreference!,
+          country: _country,
+          budget: _budget,
         );
 
         navigator.pushAndRemoveUntil(
@@ -144,6 +149,8 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
         return _goal != null;
       case 4: // Exercise Preference
         return _exercisePreference != null;
+      case 5:
+        return true; // Contextual Info (Optional)
       default:
         return false;
     }
@@ -202,6 +209,15 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
                     selectedPreference: _exercisePreference,
                     onSelection: (preference) =>
                         setState(() => _exercisePreference = preference));
+              case 5:
+                return ContextualInfoStep(
+                  selectedCountry: _country,
+                  selectedBudget: _budget,
+                  onCountrySelected: (country) =>
+                      setState(() => _country = country),
+                  onBudgetSelected: (budget) =>
+                      setState(() => _budget = budget),
+                );
               default:
                 return Container();
             }

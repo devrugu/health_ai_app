@@ -24,6 +24,8 @@ class DatabaseService {
     required ActivityLevel activityLevel,
     required Goal goal,
     required ExercisePreference exercisePreference,
+    String? country,
+    Budget? budget,
   }) async {
     try {
       final userDocRef = _db.collection('users').doc(user.uid);
@@ -42,6 +44,8 @@ class DatabaseService {
           'activityLevel': activityLevel.name,
           'goal': goal.name,
           'exercisePreference': exercisePreference.name,
+          'country': country,
+          'budget': budget?.name,
         }
       };
       await userDocRef.set(userData);
