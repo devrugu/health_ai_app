@@ -6,19 +6,20 @@ import 'package:health_ai_app/src/features/workout/presentation/screens/log_work
 
 class WorkoutSummaryCard extends StatelessWidget {
   final List<WorkoutLog> loggedWorkouts;
-  // We need the user's weight to pass it to the LogWorkoutScreen
   final double userWeightKg;
+  // NEW: Add a callback function parameter
+  final VoidCallback onWorkoutLogged;
 
   const WorkoutSummaryCard({
     super.key,
     required this.loggedWorkouts,
     required this.userWeightKg,
+    required this.onWorkoutLogged,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Calculate the total calories burned from all logged workouts
     final totalCaloriesBurned = loggedWorkouts.fold(
       0.0,
       (sum, workout) => sum + workout.caloriesBurned,
@@ -41,23 +42,25 @@ class WorkoutSummaryCard extends StatelessWidget {
                   style: theme.textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                // The button to add a new workout
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
+                  onPressed: () async {
+                    final result = await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) =>
                             LogWorkoutScreen(userWeightKg: userWeightKg),
                         fullscreenDialog: true,
                       ),
                     );
+                    // If the result is true, call the callback function.
+                    if (result == true) {
+                      onWorkoutLogged();
+                    }
                   },
                   child: const Icon(Icons.add),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            // Display the total calories burned
             Text(
               "Total Burned: ${totalCaloriesBurned.toStringAsFixed(0)} kcal",
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -65,7 +68,6 @@ class WorkoutSummaryCard extends StatelessWidget {
               ),
             ),
             const Divider(height: 24),
-            // If no workouts are logged, show a prompt. Otherwise, show the list.
             if (loggedWorkouts.isEmpty)
               const Center(
                 child: Padding(
@@ -74,7 +76,6 @@ class WorkoutSummaryCard extends StatelessWidget {
                 ),
               )
             else
-              // Create a list of compact tiles for each logged workout
               ...loggedWorkouts.map((log) => ListTile(
                     dense: true,
                     leading: const Icon(Icons.fitness_center),

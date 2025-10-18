@@ -9,6 +9,7 @@ import 'package:health_ai_app/src/features/database/domain/user_profile.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/daily_summary_card.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/meal_plan_card.dart';
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/water_tracker_card.dart';
+// NEW: Import the new workout summary card
 import 'package:health_ai_app/src/features/dashboard/presentation/widgets/workout_summary_card.dart';
 
 class TodayTab extends StatefulWidget {
@@ -90,7 +91,9 @@ class _TodayTabState extends State<TodayTab> {
     final welcomeMessage = plan.welcomeMessage;
     final initialWater = _dailyLog?.waterConsumedMl ?? 0;
     final initialMeals = _dailyLog?.mealsEaten ?? {};
-    // NEW: Get the list of workouts and the user's weight from the fetched data
+
+    // --- UPDATED LOGIC ---
+    // Safely get the list of workouts and the user's weight
     final loggedWorkouts = _dailyLog?.workouts ?? [];
     final userWeight = (_userProfile!.profileData['weight'] ?? 70.0).toDouble();
 
@@ -109,7 +112,6 @@ class _TodayTabState extends State<TodayTab> {
                 isVisible: widget.isWelcomeMessageVisible,
                 onDismiss: widget.onDismissWelcomeMessage,
               ),
-
             Text(
               "Hello, $displayName!",
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -129,15 +131,11 @@ class _TodayTabState extends State<TodayTab> {
               initialConsumedMl: initialWater,
             ),
             const SizedBox(height: 24),
-
-            // --- THIS IS THE FINAL CHANGE ---
-            // The old LogWorkoutCard is completely replaced with the new WorkoutSummaryCard,
-            // which receives the live data.
             WorkoutSummaryCard(
               loggedWorkouts: loggedWorkouts,
               userWeightKg: userWeight,
+              onWorkoutLogged: _fetchData,
             ),
-
             const SizedBox(height: 24),
             MealPlanCard(
               meals: plan.initialMealPlan,
@@ -153,6 +151,7 @@ class _TodayTabState extends State<TodayTab> {
   }
 }
 
+// ... (The _WelcomeMessageCard widget is unchanged)
 class _WelcomeMessageCard extends StatelessWidget {
   final String message;
   final bool isVisible;

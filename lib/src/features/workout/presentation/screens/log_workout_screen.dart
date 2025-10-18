@@ -67,7 +67,7 @@ class _LogWorkoutScreenState extends State<LogWorkoutScreen> {
 
     try {
       await DatabaseService().logWorkout(log);
-      navigator.pop();
+      navigator.pop(true);
     } catch (e) {
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Failed to log workout: ${e.toString()}')),
