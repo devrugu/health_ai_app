@@ -26,6 +26,7 @@ class DatabaseService {
     required ExercisePreference exercisePreference,
     String? country,
     Budget? budget,
+    String? userStory,
   }) async {
     try {
       final userDocRef = _db.collection('users').doc(user.uid);
@@ -46,6 +47,7 @@ class DatabaseService {
           'exercisePreference': exercisePreference.name,
           'country': country,
           'budget': budget?.name,
+          'userStory': userStory,
         }
       };
       await userDocRef.set(userData);

@@ -11,6 +11,7 @@ import 'package:health_ai_app/src/features/onboarding/presentation/widgets/goal_
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/metric_input_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/personal_info_step.dart';
 import 'package:health_ai_app/src/features/onboarding/presentation/widgets/contextual_info_step.dart';
+import 'package:health_ai_app/src/features/onboarding/presentation/widgets/story_step.dart';
 
 class OnboardingDetailsScreen extends StatefulWidget {
   const OnboardingDetailsScreen({super.key});
@@ -38,9 +39,10 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _storyController = TextEditingController();
   bool _isLoading = false;
 
-  final List<Widget> _onboardingSteps = List.generate(6, (_) => Container());
+  final List<Widget> _onboardingSteps = List.generate(7, (_) => Container());
 
   @override
   void initState() {
@@ -66,6 +68,7 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
     _heightController.dispose();
     _weightController.dispose();
     _ageController.dispose();
+    _storyController.dispose();
     super.dispose();
   }
 
@@ -106,6 +109,7 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
           exercisePreference: _exercisePreference!,
           country: _country,
           budget: _budget,
+          userStory: _storyController.text,
         );
 
         navigator.pushAndRemoveUntil(
@@ -151,6 +155,8 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
         return _exercisePreference != null;
       case 5:
         return true; // Contextual Info (Optional)
+      case 6:
+        return true; // Story Step (Optional)
       default:
         return false;
     }
@@ -218,6 +224,8 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
                   onBudgetSelected: (budget) =>
                       setState(() => _budget = budget),
                 );
+              case 6:
+                return StoryStep(storyController: _storyController);
               default:
                 return Container();
             }
