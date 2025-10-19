@@ -110,6 +110,7 @@ class _OnboardingDetailsScreenState extends State<OnboardingDetailsScreen> {
           country: _country,
           budget: _budget,
           userStory: _storyController.text,
+          timezoneOffset: DateTime.now().timeZoneOffset.inHours,
         );
 
         navigator.pushAndRemoveUntil(

@@ -27,6 +27,7 @@ class DatabaseService {
     String? country,
     Budget? budget,
     String? userStory,
+    required int timezoneOffset,
   }) async {
     try {
       final userDocRef = _db.collection('users').doc(user.uid);
@@ -48,6 +49,7 @@ class DatabaseService {
           'country': country,
           'budget': budget?.name,
           'userStory': userStory,
+          'timezoneOffset': timezoneOffset,
         }
       };
       await userDocRef.set(userData);
